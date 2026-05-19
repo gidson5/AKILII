@@ -1,5 +1,12 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "pnpm build"
+  "buildCommand": "pnpm build",
+  "regions": ["iad1"],
+  "functions": {
+    "app/api/chat/route.ts": { "maxDuration": 30 },
+    "app/api/insights/route.ts": { "maxDuration": 30 },
+    "app/api/recommend/route.ts": { "maxDuration": 30 },
+    "app/api/wallet/route.ts": { "maxDuration": 15 }
+  }
 }
