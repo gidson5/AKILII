@@ -5,6 +5,8 @@ dist
 coverage
 .turbo
 .DS_Store
+.env
 .env.local
 .env.*.local
+apps/api/.env
 *.tsbuildinfo
