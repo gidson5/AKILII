@@ -603,7 +603,7 @@ function CopilotInner() {
                   <div className="dashboard-section-head" style={{ marginBottom: "10px" }}>
                     <p className="section-label">Token activity</p>
                     <span style={{ fontSize: "0.72rem", color: "var(--ink-55)" }}>
-                      {insights.transactionCount} txs · ${insights.totalGasFeesUSD.toFixed(4)} gas
+                      {insights.transactionCount} txs · ${insights.totalGasFeesUSD.toFixed(4)} network fees
                     </span>
                   </div>
                   <div style={{

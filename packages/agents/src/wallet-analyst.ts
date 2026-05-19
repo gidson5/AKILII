@@ -118,7 +118,7 @@ export function computeSpendingBreakdown(wallet: WalletSummary): SpendingBreakdo
     { label: "Money Received", amount: received, color: "#3DD68C" },
     { label: "Sent to Contacts", amount: sentToPersons, color: "#FCFF52" },
     { label: "DeFi Activity", amount: defi, color: "#60A5FA" },
-    { label: "Gas Fees", amount: fees, color: "#F97316" },
+    { label: "Network Fees", amount: fees, color: "#F97316" },
     { label: "Other", amount: unknown, color: "#888" }
   ].filter(c => c.amount > 0);
 
@@ -185,7 +185,7 @@ ${receivedLines || "  None"}
 TOTALS SENT:
 ${sentLines || "  None"}
 
-TOTAL GAS FEES PAID: $${wallet.totalGasFeesUSD.toFixed(4)} USD equivalent
+TOTAL NETWORK FEES PAID: $${wallet.totalGasFeesUSD.toFixed(4)} USD equivalent
 UNIQUE CONTRACTS INTERACTED: ${wallet.uniqueContracts.length}
 UNKNOWN CONTRACTS: ${wallet.unknownContracts.length > 0 ? wallet.unknownContracts.join(", ") : "None"}
 
@@ -227,7 +227,7 @@ Make it specific to their actual numbers, not generic advice.`,
     `Give a comprehensive financial health assessment for this wallet. Score each dimension out of 100:
 - Savings Rate (how much of income is kept vs spent)
 - Spending Discipline (consistency and control)
-- Fee Efficiency (gas fees relative to activity)
+- Fee Efficiency (network fees relative to activity)
 - Activity Health (regularity and diversity)
 - Overall Health Score
 
