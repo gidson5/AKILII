@@ -6,7 +6,8 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "deploy": "hardhat run scripts/deploy.ts --network celo",
-    "deploy:testnet": "hardhat run scripts/deploy.ts --network celo-alfajores"
+    "deploy:testnet": "hardhat run scripts/deploy.ts --network celo-alfajores",
+    "register:agent": "npx tsx scripts/register-erc8004.ts"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",

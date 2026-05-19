@@ -34,7 +34,7 @@ export default function TermsPage() {
         <LegalSection
           index="01"
           title="What this app is"
-          body="Yield Copilot is a decision-support tool. It surfaces yield options and recommends a route. You execute. You stay in control of your funds."
+          body="Akili is a decision-support tool. It surfaces yield options and recommends a route. You execute. You stay in control of your funds."
         />
         <LegalSection
           index="02"
@@ -49,7 +49,7 @@ export default function TermsPage() {
         <LegalSection
           index="04"
           title="Fees"
-          body="Yield Copilot is free to use. Destination protocols and network fees apply as shown at the point of execution."
+          body="Akili is free to use. Destination protocols and network fees apply as shown at the point of execution."
         />
         <LegalSection
           index="05"

@@ -9,8 +9,7 @@ import { toYieldQuote } from "./adapter";
 
 const tokenApyOffset = {
   USDT: -0.15,
-  USDC: 0,
-  USDm: 0.35
+  USDC: 0
 } as const;
 
 const quoteLagMinutes: Record<string, number> = {

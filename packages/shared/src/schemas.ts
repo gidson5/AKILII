@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const tokenSchema = z.enum(["USDT", "USDC", "USDm"]);
+export const tokenSchema = z.enum(["USDT", "USDC"]);
 export const goalSchema = z.enum(["keep-flexible", "earn-more", "save-safely"]);
 export const riskComfortSchema = z.enum(["low", "medium"]);
 export const riskLabelSchema = z.enum([

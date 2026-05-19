@@ -2,7 +2,6 @@
 
 import type { Token } from "@yield-copilot/shared";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { BottomNav } from "../components/bottom-nav";
 import { WalletConnectModal } from "../components/wallet-connect-modal";
@@ -67,16 +66,7 @@ function EyeOffIcon() {
   );
 }
 
-function CompassIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
-      <circle cx="9" cy="9" r="6.5" stroke="currentColor" strokeWidth="1.4" />
-      <path d="M11.5 6.5L10 10l-3.5 1.5L8 8z" fill="currentColor" />
-    </svg>
-  );
-}
-
-function ChartIcon() {
+function SpendingIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
       <path d="M3 14V8M8 14V4M13 14v-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -85,20 +75,24 @@ function ChartIcon() {
   );
 }
 
-function truncateWalletAddress(address?: string) {
-  if (!address) {
-    return "Waiting for wallet";
-  }
+function AuditIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+      <circle cx="8" cy="8" r="5" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M12 12l3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M6 8h4M8 6v4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  );
+}
 
+function truncateWalletAddress(address?: string) {
+  if (!address) return "Waiting for wallet";
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
 }
 
 export default function HomePage() {
-  const router = useRouter();
   const miniPay = useMiniPay();
-  const { balances, isLoading: balancesLoading } = useStableTokenBalances(
-    miniPay.walletAddress
-  );
+  const { balances, isLoading: balancesLoading } = useStableTokenBalances(miniPay.walletAddress);
   const [selectedToken, setSelectedToken] = useState<Token>("USDC");
   const [hasTriedAutoConnect, setHasTriedAutoConnect] = useState(false);
 
@@ -108,76 +102,29 @@ export default function HomePage() {
   );
 
   useEffect(() => {
-    if (
-      miniPay.isLoading ||
-      miniPay.walletAddress ||
-      !miniPay.isMiniPayProvider ||
-      hasTriedAutoConnect
-    ) {
-      return;
-    }
-
+    if (miniPay.isLoading || miniPay.walletAddress || !miniPay.isMiniPayProvider || hasTriedAutoConnect) return;
     setHasTriedAutoConnect(true);
     void miniPay.connect();
-  }, [
-    hasTriedAutoConnect,
-    miniPay.isLoading,
-    miniPay.isMiniPayProvider,
-    miniPay.walletAddress,
-    miniPay
-  ]);
+  }, [hasTriedAutoConnect, miniPay]);
 
   useEffect(() => {
-    if (positiveBalances.length === 0) {
-      return;
-    }
-
+    if (positiveBalances.length === 0) return;
     const [firstPositiveBalance] = positiveBalances;
-    if (firstPositiveBalance && !positiveBalances.some((balance) => balance.symbol === selectedToken)) {
+    if (firstPositiveBalance && !positiveBalances.some((b) => b.symbol === selectedToken)) {
       setSelectedToken(firstPositiveBalance.symbol);
     }
   }, [positiveBalances, selectedToken]);
 
   const selectedBalance =
-    positiveBalances.find((balance) => balance.symbol === selectedToken) ??
-    balances.find((balance) => balance.symbol === selectedToken);
-  const canRunAnalysis = Boolean(
-    miniPay.walletAddress && selectedBalance && selectedBalance.hasBalance
-  );
+    positiveBalances.find((b) => b.symbol === selectedToken) ??
+    balances.find((b) => b.symbol === selectedToken);
+
+  const canAnalyze = Boolean(miniPay.walletAddress);
   const walletSummary = miniPay.walletAddress
     ? truncateWalletAddress(miniPay.walletAddress)
     : miniPay.isMiniPayProvider
       ? "Auto-connecting"
       : "Wallet required";
-
-  const baseParams = useMemo(() => {
-    const params = new URLSearchParams({
-      goal: "earn-more",
-      token: selectedToken,
-      amount: selectedBalance?.inputAmount && selectedBalance.inputAmount !== "0"
-        ? selectedBalance.inputAmount
-        : "2400",
-      timeHorizonDays: "30",
-      riskComfort: "low"
-    });
-
-    if (miniPay.walletAddress) {
-      params.set("walletAddress", miniPay.walletAddress);
-    }
-
-    return params.toString();
-  }, [miniPay.walletAddress, selectedBalance?.inputAmount, selectedToken]);
-
-  function handleRunCheck() {
-    if (!canRunAnalysis) {
-      if (!miniPay.walletAddress) {
-        void miniPay.connect();
-      }
-      return;
-    }
-
-    router.push(`/check?${baseParams}`);
-  }
 
   return (
     <main className="page-shell dashboard-enter">
@@ -192,37 +139,40 @@ export default function HomePage() {
       <div className="dashboard">
         <header className="dashboard-topbar">
           <div className="dashboard-brand">
-            <span className="dashboard-brand__mark">Y</span>
-            <div className="dashboard-brand__name">Yield Copilot</div>
+            <span className="dashboard-brand__mark">A</span>
+            <div className="dashboard-brand__name">Akili</div>
           </div>
           <div className="dashboard-topbar__actions">
-            <Link href={`/alerts?${baseParams}`} className="dashboard-topbar__icon" aria-label="View alerts">
+            <Link href="/alerts" className="dashboard-topbar__icon" aria-label="View alerts">
               <BellIcon />
             </Link>
             <Link href="/support" className="dashboard-avatar" aria-label="Open support">AM</Link>
           </div>
         </header>
 
-        <button type="button" className="dashboard-search-card" onClick={handleRunCheck}>
+        <Link
+          href={canAnalyze ? "/copilot" : "#"}
+          className="dashboard-search-card"
+          aria-label="Open AI Copilot"
+          onClick={(e) => { if (!canAnalyze) { e.preventDefault(); void miniPay.connect(); } }}
+        >
           <span className="dashboard-search-card__icon">
             <SearchIcon />
           </span>
           <span>
-            {canRunAnalysis
-              ? `What should I do with my ${selectedToken}?`
-              : "Connect wallet to start a check"}
+            {canAnalyze ? "Ask about your wallet…" : "Connect wallet to start analysis"}
           </span>
           <span className="dashboard-search-card__spark">
             <SparkIcon />
           </span>
-        </button>
+        </Link>
 
         <section className="dashboard-home-stack">
           <article className="dashboard-hero-home">
             <div className="dashboard-hero-home__glow" aria-hidden="true" />
             <div className="dashboard-hero-home__top">
               <p className="section-label section-label--on-dark">
-                {miniPay.isMiniPayProvider ? "MiniPay wallet" : "Wallet preview"}
+                AI Financial Copilot
               </p>
               <div className="dashboard-hero-home__status">
                 <span className="dashboard-hero-home__dot" />
@@ -243,35 +193,35 @@ export default function HomePage() {
             </div>
 
             <p className="dashboard-hero-home__headline">
-              {canRunAnalysis
-                ? `Best route first for your ${selectedToken}. Backup stays ready if the fit changes.`
-                : "Connect first, review available stablecoins, then run the check with a real balance."}
+              {canAnalyze
+                ? "Analyze your spending, audit your wallet, and get a personalized financial health score."
+                : "Connect your wallet to unlock AI-powered financial insights."}
             </p>
 
-            <div className="dashboard-hero-home__split-card">
-              <div>
-                <span>Top pick</span>
-                <strong>Kiln in MiniPay</strong>
-                <small>6.1% APY · Low risk</small>
-              </div>
-              <div>
-                <span>Backup</span>
-                <strong>MiniPay Boost</strong>
-                <small>4.8% APY · Flexible</small>
-              </div>
+            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+              {[
+                { label: "Spending Advice", action: "spending-advice" },
+                { label: "Wallet Audit", action: "wallet-audit" },
+                { label: "Statement", action: "wallet-statement" },
+              ].map((item) => (
+                <Link
+                  key={item.action}
+                  href={canAnalyze ? `/copilot?action=${item.action}` : "/copilot"}
+                  className="inline-chip inline-chip--slab"
+                >
+                  {item.label}
+                </Link>
+              ))}
             </div>
 
             <div className="dashboard-hero-home__footer dashboard-hero-home__footer--bundle">
-              <div className="dashboard-hero-home__range">Range 4.8 – 6.1%</div>
-              <button
-                type="button"
-                className="dashboard-primary-link"
-                onClick={handleRunCheck}
-                disabled={!canRunAnalysis}
-              >
-                {canRunAnalysis ? "Run a check" : "Connect to continue"}
+              <div className="dashboard-hero-home__range">
+                {canAnalyze ? "Wallet connected · ready" : "Wallet required"}
+              </div>
+              <Link href="/copilot" className="dashboard-primary-link">
+                Open Copilot
                 <ArrowRightIcon />
-              </button>
+              </Link>
             </div>
           </article>
 
@@ -303,45 +253,47 @@ export default function HomePage() {
           {miniPay.walletAddress && !balancesLoading && positiveBalances.length === 0 ? (
             <div className="wallet-empty-card">
               <strong>No stable balances found.</strong>
-              <span>Add USDC, USDT, or USDm to unlock analysis.</span>
+              <span>Add USDC or USDT to unlock analysis.</span>
             </div>
           ) : null}
 
           <div className="dashboard-section-head">
-            <p className="section-label">Decision tools</p>
-            <button type="button" className="dashboard-inline-button" onClick={handleRunCheck}>
-              Start
-            </button>
+            <p className="section-label">AI analysis</p>
+            <Link href="/copilot" className="dashboard-inline-button">Open all</Link>
           </div>
 
           <div className="dashboard-action-row">
-            <button type="button" className="dashboard-action-card dashboard-action-card--warm" onClick={handleRunCheck}>
+            <Link
+              href={canAnalyze ? "/copilot?action=spending-advice" : "/copilot"}
+              className="dashboard-action-card dashboard-action-card--warm"
+            >
               <div className="dashboard-pin__icon dashboard-pin__icon--green">
-                <CompassIcon />
+                <SpendingIcon />
               </div>
-              <div className="dashboard-action-card__title">Fresh recommendation</div>
+              <div className="dashboard-action-card__title">Spending Advice</div>
               <div className="dashboard-pin__meta">
-                {canRunAnalysis
-                  ? `Run against your ${selectedToken} balance.`
-                  : "Connect wallet first."}
+                {canAnalyze ? "Personalized tips from your activity." : "Connect wallet first."}
               </div>
-            </button>
-
-            <Link href={`/position?${baseParams}`} className="dashboard-action-card dashboard-action-card--soft">
-              <div className="dashboard-pin__icon dashboard-pin__icon--amber">
-                <ChartIcon />
-              </div>
-              <div className="dashboard-action-card__title">Position tracking</div>
-              <div className="dashboard-pin__meta">One position open · healthy.</div>
             </Link>
 
-            <Link href={`/chat?${baseParams}`} className="dashboard-chat-card dashboard-chat-card--bundle">
+            <Link
+              href={canAnalyze ? "/copilot?action=wallet-audit" : "/copilot"}
+              className="dashboard-action-card dashboard-action-card--soft"
+            >
+              <div className="dashboard-pin__icon dashboard-pin__icon--amber">
+                <AuditIcon />
+              </div>
+              <div className="dashboard-action-card__title">Wallet Audit</div>
+              <div className="dashboard-pin__meta">Health score and risk check.</div>
+            </Link>
+
+            <Link href="/copilot" className="dashboard-chat-card dashboard-chat-card--bundle">
               <div className="dashboard-chat-card__avatar" aria-hidden="true">
                 <span />
               </div>
               <div className="dashboard-chat-card__copy">
-                <div className="dashboard-action-card__title">Copilot chat</div>
-                <div className="dashboard-pin__meta">Ask a question, get a route. Plain answers.</div>
+                <div className="dashboard-action-card__title">Ask the Copilot</div>
+                <div className="dashboard-pin__meta">Plain answers about your wallet.</div>
               </div>
               <span className="dashboard-chat-card__arrow">
                 <ArrowRightIcon />
@@ -349,63 +301,37 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="dashboard-section-head">
-            <p className="section-label">Today&apos;s read</p>
-          </div>
-
           <div className="dashboard-insight-row">
-            <Link href={`/recommendation?${baseParams}`} className="dashboard-insight-card dashboard-insight-card--chart">
-              <div className="dashboard-insight-card__top">
-                <span>Yield range · 30d</span>
-                <span className="inline-chip inline-chip--green">+0.4%</span>
-              </div>
-              <h3>
-                4.8<span>–</span>6.1<small>%</small>
-              </h3>
-              <svg viewBox="0 0 120 32" width="100%" height="32" preserveAspectRatio="none">
-                <path
-                  d="M0,22 L12,20 L24,23 L36,18 L48,17 L60,15 L72,12 L84,14 L96,10 L108,9 L120,7"
-                  fill="none"
-                  stroke="oklch(0.68 0.12 145)"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M0,22 L12,20 L24,23 L36,18 L48,17 L60,15 L72,12 L84,14 L96,10 L108,9 L120,7 L120,32 L0,32 Z"
-                  fill="oklch(0.68 0.12 145 / 0.10)"
-                />
-              </svg>
-            </Link>
-
-            <Link href={`/alerts?${baseParams}`} className="dashboard-insight-card">
+            <Link
+              href={canAnalyze ? "/copilot?action=account-summary" : "/copilot"}
+              className="dashboard-insight-card"
+            >
               <div className="dashboard-insight-card__top dashboard-insight-card__top--plain">
-                <span>Monitoring</span>
+                <span>Account summary</span>
               </div>
               <div className="dashboard-monitoring">
-                <div className="dashboard-monitoring__ring">
-                  <svg width="44" height="44" viewBox="0 0 44 44">
-                    <circle cx="22" cy="22" r="18" stroke="rgba(22,20,14,0.12)" strokeWidth="3" fill="none" />
-                    <circle
-                      cx="22"
-                      cy="22"
-                      r="18"
-                      stroke="oklch(0.68 0.12 145)"
-                      strokeWidth="3"
-                      fill="none"
-                      strokeDasharray="88 113"
-                      transform="rotate(-90 22 22)"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <span>4/5</span>
-                </div>
                 <div className="dashboard-monitoring__copy">
-                  <strong>Rules armed.</strong>
-                  <span>Quiet day so far.</span>
+                  <strong>90-day view.</strong>
+                  <span>Income, spend &amp; net position.</span>
                 </div>
               </div>
-              <small>{canRunAnalysis ? "Last refresh just now" : "Connect wallet to arm alerts"}</small>
+              <small>{canAnalyze ? "AI-generated · on demand" : "Connect wallet"}</small>
+            </Link>
+
+            <Link
+              href={canAnalyze ? "/copilot?action=wallet-statement" : "/copilot"}
+              className="dashboard-insight-card"
+            >
+              <div className="dashboard-insight-card__top dashboard-insight-card__top--plain">
+                <span>Statement</span>
+              </div>
+              <div className="dashboard-monitoring">
+                <div className="dashboard-monitoring__copy">
+                  <strong>Formal export.</strong>
+                  <span>Proof of financial activity.</span>
+                </div>
+              </div>
+              <small>{canAnalyze ? "Generate any time" : "Connect wallet"}</small>
             </Link>
           </div>
         </section>

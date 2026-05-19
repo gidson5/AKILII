@@ -1,6 +1,6 @@
 import type { Goal, Token, VenueDefinition } from "./types";
 
-export const APP_NAME = "MiniPay Yield Copilot";
+export const APP_NAME = "Akili";
 export const SUPPORT_EMAIL = "support@yieldcopilot.app";
 
 export const GOAL_OPTIONS: Array<{ id: Goal; label: string; description: string }> = [
@@ -23,8 +23,7 @@ export const GOAL_OPTIONS: Array<{ id: Goal; label: string; description: string 
 
 export const TOKEN_OPTIONS: Array<{ id: Token; label: string }> = [
   { id: "USDT", label: "USDT" },
-  { id: "USDC", label: "USDC" },
-  { id: "USDm", label: "USDm" }
+  { id: "USDC", label: "USDC" }
 ];
 
 export const MOCK_VENUE_DEFINITIONS: VenueDefinition[] = [
@@ -32,7 +31,7 @@ export const MOCK_VENUE_DEFINITIONS: VenueDefinition[] = [
     id: "wallet-liquid",
     label: "Stay liquid in MiniPay",
     kind: "liquid",
-    supportedTokens: ["USDT", "USDC", "USDm"],
+    supportedTokens: ["USDT", "USDC"],
     thirdParty: false,
     baseApy: 0,
     liquidityProfile: "instant",
@@ -80,7 +79,7 @@ export const MOCK_VENUE_DEFINITIONS: VenueDefinition[] = [
     id: "direct-celo-lending",
     label: "Direct Celo Lending",
     kind: "third-party",
-    supportedTokens: ["USDC", "USDm"],
+    supportedTokens: ["USDC"],
     thirdParty: true,
     baseApy: 7.4,
     liquidityProfile: "locked",

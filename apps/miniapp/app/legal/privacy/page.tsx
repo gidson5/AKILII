@@ -34,7 +34,7 @@ export default function PrivacyPage() {
         <LegalSection
           index="01"
           title="What we read"
-          body="Yield Copilot reads your stablecoin balances and the recommendations you choose to act on. We do not ask for keys."
+          body="Akili reads your stablecoin balances and the wallet activity you choose to analyze. We do not ask for keys."
         />
         <LegalSection
           index="02"
