@@ -1,5 +1,13 @@
 import path from "node:path";
 
+const securityHeaders = [
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "X-XSS-Protection", value: "1; mode=block" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" }
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   outputFileTracingRoot: path.join(import.meta.dirname, "../.."),
@@ -8,7 +16,15 @@ const nextConfig = {
     "@yield-copilot/celo",
     "@yield-copilot/shared",
     "@yield-copilot/ui"
-  ]
+  ],
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: securityHeaders
+      }
+    ];
+  }
 };
 
 export default nextConfig;
