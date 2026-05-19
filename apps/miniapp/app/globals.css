@@ -777,9 +777,6 @@ button {
   background: oklch(0.74 0.1 250);
 }
 
-.token-card__dot--usdm {
-  background: oklch(0.78 0.09 60);
-}
 
 .wallet-token-grid {
   display: grid;

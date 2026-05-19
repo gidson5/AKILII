@@ -4,3 +4,4 @@ export * from "./monitor-agent";
 export * from "./recommendation-engine";
 export * from "./risk-guard";
 export * from "./yield-scout";
+export * from "./wallet-analyst";

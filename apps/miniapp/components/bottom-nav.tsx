@@ -18,7 +18,7 @@ function HomeIcon() {
   );
 }
 
-function HistoryIcon() {
+function InsightsIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
       <path d="M3 14V8M8 14V4M13 14v-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -27,21 +27,7 @@ function HistoryIcon() {
   );
 }
 
-function CheckIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-      <path
-        d="M9 2.5l1.3 3.8L14 7.7l-3.7 1.3L9 12.8 7.7 9 4 7.7l3.7-1.4L9 2.5z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function SettingsIcon() {
+function AlertsIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
       <path d="M4 12V8a5 5 0 0110 0v4l1.2 1.5H2.8L4 12z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
@@ -50,15 +36,21 @@ function SettingsIcon() {
   );
 }
 
-function navMatch(pathname: string, href: string) {
-  if (href === "/") {
-    return pathname === href;
-  }
+function CopilotIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <circle cx="9" cy="9" r="6.5" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M6 9.5c.5 1 1.5 1.8 3 1.8s2.5-.8 3-1.8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      <circle cx="6.8" cy="7.5" r="0.8" fill="currentColor" />
+      <circle cx="11.2" cy="7.5" r="0.8" fill="currentColor" />
+    </svg>
+  );
+}
 
-  if (href === "/position") {
-    return pathname.startsWith("/position") || pathname.startsWith("/recommendation");
-  }
-
+function navMatch(pathname: string, href: string, search: string) {
+  if (href === "/") return pathname === href;
+  if (href === "/copilot?tab=insights") return pathname.startsWith("/copilot") && search.includes("tab=insights");
+  if (href === "/copilot") return pathname.startsWith("/copilot") && !search.includes("tab=insights");
   return pathname.startsWith(href);
 }
 
@@ -79,18 +71,19 @@ function NavPill({
 
 const navItems = [
   { href: "/", label: "Home", icon: <HomeIcon /> },
-  { href: "/check", label: "Check", icon: <CheckIcon /> },
-  { href: "/position", label: "Track", icon: <HistoryIcon /> },
-  { href: "/alerts", label: "Alerts", icon: <SettingsIcon /> },
+  { href: "/copilot", label: "Akili", icon: <CopilotIcon /> },
+  { href: "/copilot?tab=insights", label: "Insights", icon: <InsightsIcon /> },
+  { href: "/alerts", label: "Alerts", icon: <AlertsIcon /> },
 ];
 
 export function BottomNav() {
   const pathname = usePathname();
+  const search = typeof window !== "undefined" ? window.location.search : "";
 
   return (
     <nav className="bottom-nav" aria-label="Primary">
       {navItems.map((item) => {
-        const isActive = navMatch(pathname, item.href);
+        const isActive = navMatch(pathname, item.href, search);
 
         return (
           <Link

@@ -16,12 +16,7 @@ export const stableTokens: Record<
     displayName: "USD Coin",
     address: "0xcebA9300f2b948710d2653dD7B07f33A8B32118C"
   },
-  USDm: {
-    symbol: "USDm",
-    decimals: 18,
-    displayName: "Mento Dollar",
-    address: "0x765DE816845861e75A25fCA122bb6898B8B1282a"
-  }
+
 };
 
 export const stableTokenList = Object.values(stableTokens);

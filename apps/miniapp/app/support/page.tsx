@@ -17,7 +17,7 @@ export default function SupportPage() {
 
       <section className="support-email-card">
         <span className="support-email-card__label">Email</span>
-        <Link href={`mailto:${SUPPORT_EMAIL}?subject=Yield%20Copilot%20Support`}>
+        <Link href={`mailto:${SUPPORT_EMAIL}?subject=Akili%20Support`}>
           <strong>{SUPPORT_EMAIL}</strong>
         </Link>
         <span className="support-email-card__status">Typical reply: within 1 business day</span>
@@ -29,7 +29,7 @@ export default function SupportPage() {
           {[
             { title: "Open the FAQ", detail: "Common questions about yield, risk, fees.", href: "/legal/terms" },
             { title: "Status page", detail: "See live system status.", href: `/alerts?${defaultParams}` },
-            { title: "Report a bug", detail: "Send us a quick note with logs.", href: `mailto:${SUPPORT_EMAIL}?subject=Yield%20Copilot%20Bug%20Report` },
+            { title: "Report a bug", detail: "Send us a quick note with logs.", href: `mailto:${SUPPORT_EMAIL}?subject=Akili%20Bug%20Report` },
           ].map((item, index, arr) => (
             <Link key={item.title} href={item.href} className={index < arr.length - 1 ? "support-links-card__row" : "support-links-card__row support-links-card__row--last"}>
               <div>

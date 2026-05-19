@@ -23,7 +23,7 @@ export function WalletConnectModal({
   const title = isMiniPayProvider ? "Connecting MiniPay wallet" : "Connect your wallet";
   const body = isMiniPayProvider
     ? "MiniPay can attach automatically. Once connected, we will load your stablecoin balances and unlock analysis."
-    : "Connect a wallet to load your USDC, USDT, and USDm balances before running a check.";
+    : "Connect a wallet to load your USDC and USDT balances and unlock AI analysis.";
 
   return (
     <div className="wallet-modal-shell" role="dialog" aria-modal="true" aria-labelledby="wallet-modal-title">

@@ -49,7 +49,7 @@ export const defaultPolicyVenueConfigs: Record<string, PolicyVenueConfig> = {
     action: "stay-liquid",
     chainId: celoMainnet.id,
     executorAddress: "0x0000000000000000000000000000000000000000",
-    acceptedTokens: ["USDT", "USDC", "USDm"],
+    acceptedTokens: ["USDT", "USDC"],
     maxAmount: "1000000",
     minUserRiskScore: 0,
     cooldownSeconds: 0,
@@ -85,7 +85,7 @@ export const defaultPolicyVenueConfigs: Record<string, PolicyVenueConfig> = {
     action: "deposit-direct-celo-lending",
     chainId: celoMainnet.id,
     executorAddress: "0x3333333333333333333333333333333333333333",
-    acceptedTokens: ["USDC", "USDm"],
+    acceptedTokens: ["USDC"],
     maxAmount: "10000",
     minUserRiskScore: 60,
     cooldownSeconds: 12 * 3600,
@@ -115,8 +115,6 @@ function tokenAddressForSymbol(token: Token) {
       return "0x0000000000000000000000000000000000001001";
     case "USDC":
       return "0x0000000000000000000000000000000000001002";
-    case "USDm":
-      return "0x0000000000000000000000000000000000001003";
   }
 }
 

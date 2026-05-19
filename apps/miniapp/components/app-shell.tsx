@@ -59,7 +59,7 @@ export function AppShell({
           ) : (
             <div className="brand-lockup">
               <Link href="/" className="brand-kicker">
-                Yield Copilot
+                Akili
               </Link>
             </div>
           )}

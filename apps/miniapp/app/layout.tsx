@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MiniPay Yield Copilot",
+  title: "Akili — AI Financial Copilot",
   description:
-    "MiniPay-first guidance for deciding where to park idle stablecoins.",
+    "AI-powered financial intelligence for MiniPay users. Analyze spending, audit your wallet, and get a personalized financial health score.",
 };
 
 export const viewport: Viewport = {
