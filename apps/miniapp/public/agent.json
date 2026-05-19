@@ -3,7 +3,7 @@
   "description": "AI-powered financial intelligence for MiniPay users on Celo. Analyzes wallet activity, gives spending advice, audits wallets, and generates formal financial statements.",
   "version": "1.0.0",
   "author": "Akili",
-  "homepage": "https://minipay-yield-decision-agent.vercel.app",
+  "homepage": "https://akilii-minipay.vercel.app",
   "chainId": 42220,
   "network": "celo",
   "capabilities": [
@@ -20,11 +20,12 @@
     "role": "wallet analysis and financial intelligence"
   },
   "x402Support": true,
-  "x402Endpoint": "https://minipay-yield-decision-agent.vercel.app/api/recommend",
+  "x402Endpoint": "https://akilii-minipay.vercel.app/api/recommend",
   "x402PaymentToken": "0xcebA9300f2b948710d2653dD7B07f33A8B32118C",
   "x402PaymentAmount": "10000",
   "erc8004": {
     "registry": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
     "network": "celo-mainnet"
-  }
+  },
+  "support": "akilihq12@gmail.com"
 }

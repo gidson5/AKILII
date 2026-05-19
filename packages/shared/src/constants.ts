@@ -1,7 +1,7 @@
 import type { Goal, Token, VenueDefinition } from "./types";
 
 export const APP_NAME = "Akili";
-export const SUPPORT_EMAIL = "support@yieldcopilot.app";
+export const SUPPORT_EMAIL = "akilihq12@gmail.com";
 
 export const GOAL_OPTIONS: Array<{ id: Goal; label: string; description: string }> = [
   {
