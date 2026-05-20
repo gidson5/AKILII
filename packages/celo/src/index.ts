@@ -1,3 +1,4 @@
+export * from "./addresses";
 export * from "./chains";
 export * from "./minipay";
 export * from "./policy-router";
