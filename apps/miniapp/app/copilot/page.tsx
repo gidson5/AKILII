@@ -546,15 +546,15 @@ function CopilotInner() {
       {tab === "insights" && (
         <div className="tab-panel-enter" style={{ flex: 1, overflowY: "auto", padding: "16px", paddingBottom: "100px" }}>
           {insightsLoading && (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "60px 0", gap: "16px" }}>
-              <div style={{
-                width: "36px", height: "36px",
-                border: "3px solid var(--line-strong)",
-                borderTop: "3px solid var(--green)",
-                borderRadius: "50%",
-                animation: "copilot-spin 0.8s linear infinite"
-              }} />
-              <div style={{ color: "var(--ink-55)", fontSize: "13px" }}>Analyzing your wallet with AI…</div>
+            <div className="stack-lg">
+              {[120, 80, 100].map((w, i) => (
+                <div key={i} style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: "22px", padding: "18px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <div style={{ height: "12px", width: `${w}px`, borderRadius: "6px", background: "var(--line-strong)", animation: "copilot-pulse 1.4s ease-in-out infinite" }} />
+                  <div style={{ height: "10px", width: "80%", borderRadius: "6px", background: "var(--line)", animation: "copilot-pulse 1.4s ease-in-out 0.2s infinite" }} />
+                  <div style={{ height: "10px", width: "60%", borderRadius: "6px", background: "var(--line)", animation: "copilot-pulse 1.4s ease-in-out 0.4s infinite" }} />
+                </div>
+              ))}
+              <div style={{ textAlign: "center", color: "var(--ink-55)", fontSize: "12px", paddingTop: "4px" }}>Analyzing your wallet with AI…</div>
             </div>
           )}
 
