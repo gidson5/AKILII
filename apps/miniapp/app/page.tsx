@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { BottomNav } from "../components/bottom-nav";
 import { WalletConnectModal } from "../components/wallet-connect-modal";
 import { useMiniPay } from "../hooks/use-minipay";
+import { usePullToRefresh } from "../hooks/use-pull-to-refresh";
 import { useStableTokenBalances } from "../hooks/use-stable-token-balances";
 
 function SearchIcon() {
@@ -94,7 +95,8 @@ function truncateWalletAddress(address?: string) {
 export default function HomePage() {
   const router = useRouter();
   const miniPay = useMiniPay();
-  const { balances, isLoading: balancesLoading } = useStableTokenBalances(miniPay.walletAddress);
+  const { balances, isLoading: balancesLoading, refresh: refreshBalances } = useStableTokenBalances(miniPay.walletAddress);
+  const { refreshing: pullRefreshing } = usePullToRefresh({ onRefresh: refreshBalances });
   const [selectedToken, setSelectedToken] = useState<Token>("USDC");
   const [hasTriedAutoConnect, setHasTriedAutoConnect] = useState(false);
   const [addressCopied, setAddressCopied] = useState(false);
@@ -246,7 +248,7 @@ export default function HomePage() {
 
           <div className="dashboard-section-head">
             <p className="section-label">Stable balances</p>
-            <span>{balancesLoading ? "Refreshing" : walletSummary}</span>
+            <span>{pullRefreshing || balancesLoading ? "Refreshing…" : walletSummary}</span>
           </div>
 
           <div className="wallet-token-grid">
