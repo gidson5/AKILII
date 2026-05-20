@@ -2,6 +2,7 @@
 
 import type { Token } from "@yield-copilot/shared";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { BottomNav } from "../components/bottom-nav";
 import { WalletConnectModal } from "../components/wallet-connect-modal";
@@ -91,11 +92,20 @@ function truncateWalletAddress(address?: string) {
 }
 
 export default function HomePage() {
+  const router = useRouter();
   const miniPay = useMiniPay();
   const { balances, isLoading: balancesLoading } = useStableTokenBalances(miniPay.walletAddress);
   const [selectedToken, setSelectedToken] = useState<Token>("USDC");
   const [hasTriedAutoConnect, setHasTriedAutoConnect] = useState(false);
   const [addressCopied, setAddressCopied] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem("akili_onboarded")) {
+        router.replace("/onboarding");
+      }
+    } catch { /* ignore — SSR or restricted */ }
+  }, [router]);
 
   function copyAddress() {
     if (!miniPay.walletAddress) return;
