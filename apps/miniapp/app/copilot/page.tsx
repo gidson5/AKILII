@@ -429,6 +429,28 @@ function CopilotInner() {
                   {msg.content}
                 </div>
 
+                {/* Share button for all assistant messages */}
+                {msg.role === "assistant" && msg.content.length > 40 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (navigator.share) {
+                        void navigator.share({ title: "Akili Financial Report", text: msg.content });
+                      } else {
+                        void navigator.clipboard.writeText(msg.content);
+                      }
+                    }}
+                    style={{
+                      marginTop: "4px", display: "inline-flex", alignItems: "center", gap: "5px",
+                      padding: "4px 10px", borderRadius: "999px", background: "transparent",
+                      border: "1px solid var(--line)", color: "var(--ink-55)",
+                      fontSize: "11px", cursor: "pointer"
+                    }}
+                  >
+                    Share
+                  </button>
+                )}
+
                 {/* Download button for statement reports */}
                 {msg.role === "assistant" && msg.reportType === "wallet-statement" && (
                   <button
