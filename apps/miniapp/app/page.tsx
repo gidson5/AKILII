@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { BottomNav } from "../components/bottom-nav";
+import { SpendingAlertModal } from "../components/spending-alert-modal";
 import { WalletConnectModal } from "../components/wallet-connect-modal";
 import { useMiniPay } from "../hooks/use-minipay";
 import { usePullToRefresh } from "../hooks/use-pull-to-refresh";
@@ -181,6 +182,11 @@ export default function HomePage() {
 
   return (
     <main className="page-shell dashboard-enter">
+      <SpendingAlertModal
+        walletAddress={miniPay.walletAddress}
+        totalBalance={positiveBalances.reduce((s, b) => s + parseFloat(b.displayAmount.replace(/,/g, "") || "0"), 0)}
+      />
+
       <WalletConnectModal
         isOpen={!miniPay.isLoading && !miniPay.walletAddress}
         isLoading={miniPay.isLoading}
