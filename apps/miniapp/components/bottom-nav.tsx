@@ -18,11 +18,12 @@ function HomeIcon() {
   );
 }
 
-function InsightsIcon() {
+function BudgetIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-      <path d="M3 14V8M8 14V4M13 14v-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M2 16h14" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      <rect x="2" y="3" width="14" height="12" rx="2" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M6 7h6M6 10h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      <path d="M12 10.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" fill="currentColor" />
     </svg>
   );
 }
@@ -72,7 +73,7 @@ function NavPill({
 const navItems = [
   { href: "/", label: "Home", icon: <HomeIcon /> },
   { href: "/copilot", label: "Akili", icon: <CopilotIcon /> },
-  { href: "/copilot?tab=insights", label: "Insights", icon: <InsightsIcon /> },
+  { href: "/budget", label: "Budget", icon: <BudgetIcon /> },
   { href: "/alerts", label: "Alerts", icon: <AlertsIcon /> },
 ];
 
