@@ -5,7 +5,14 @@ import { useEffect, useMemo, useState } from "react";
 import { BottomNav } from "../../components/bottom-nav";
 import { useMiniPay } from "../../hooks/use-minipay";
 import { useStableTokenBalances } from "../../hooks/use-stable-token-balances";
-import { type AlertPeriod } from "../../lib/budget-store";
+import {
+  type AlertPeriod,
+  type CategoryLimits,
+  getCategoryLimits,
+  getRules,
+  setCategoryLimit,
+  clearCategoryLimit,
+} from "../../lib/budget-store";
 import { upsertContact, getContactMap, resolveLabel } from "../../lib/contacts";
 import {
   type FxRates,
@@ -79,11 +86,21 @@ function NoteIcon() {
   );
 }
 
-function BudgetBar({ label, emoji, color, actual, limit, localAmt }: {
-  label: string; emoji: string; color: string; actual: number; limit?: number; localAmt?: string | undefined;
+function BudgetBar({ label, emoji, color, actual, limit, localAmt, onSetLimit, onClearLimit }: {
+  label: string; emoji: string; color: string; actual: number; limit?: number | undefined; localAmt?: string | undefined;
+  onSetLimit?: (v: number) => void; onClearLimit?: () => void;
 }) {
   const pct = limit ? Math.min(100, (actual / limit) * 100) : 0;
   const over = limit ? actual > limit : false;
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+
+  function submit() {
+    const n = parseFloat(draft);
+    if (n > 0) onSetLimit?.(n);
+    setEditing(false);
+    setDraft("");
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
@@ -91,15 +108,48 @@ function BudgetBar({ label, emoji, color, actual, limit, localAmt }: {
         <span style={{ fontSize: "13px", color: "var(--ink-70)", display: "flex", alignItems: "center", gap: "5px" }}>
           <span>{emoji}</span> {label}
         </span>
-        <div style={{ textAlign: "right" }}>
-          <span style={{ fontSize: "12px", fontFamily: "var(--font-mono)", color: over ? "var(--coral-ink)" : "var(--ink-70)", fontWeight: 600 }}>
-            ${actual.toFixed(2)}{limit ? ` / $${limit}` : ""}
-          </span>
-          {localAmt && (
-            <div style={{ fontSize: "10px", color: "var(--ink-40)", fontFamily: "var(--font-mono)" }}>{localAmt}</div>
+        <div style={{ textAlign: "right", display: "flex", alignItems: "center", gap: "6px" }}>
+          <div>
+            <span style={{ fontSize: "12px", fontFamily: "var(--font-mono)", color: over ? "var(--coral-ink)" : "var(--ink-70)", fontWeight: 600 }}>
+              ${actual.toFixed(2)}{limit ? ` / $${limit}` : ""}
+            </span>
+            {localAmt && (
+              <div style={{ fontSize: "10px", color: "var(--ink-40)", fontFamily: "var(--font-mono)" }}>{localAmt}</div>
+            )}
+          </div>
+          {onSetLimit && !editing && (
+            <button
+              type="button"
+              onClick={() => { setEditing(true); setDraft(limit ? String(limit) : ""); }}
+              style={{ fontSize: "10px", color: "var(--ink-40)", background: "none", border: "none", cursor: "pointer", padding: "2px 4px", borderRadius: "6px" }}
+            >
+              {limit ? "✏️" : "+ limit"}
+            </button>
+          )}
+          {limit && onClearLimit && !editing && (
+            <button type="button" onClick={onClearLimit} style={{ fontSize: "10px", color: "var(--ink-40)", background: "none", border: "none", cursor: "pointer" }}>✕</button>
           )}
         </div>
       </div>
+
+      {editing && (
+        <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+          <input
+            type="number"
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            placeholder="Monthly limit ($)"
+            autoFocus
+            min="0"
+            step="1"
+            style={{ flex: 1, fontSize: "12px", padding: "5px 8px", borderRadius: "8px", border: "1px solid var(--line)", background: "var(--bg-soft)", outline: "none", color: "var(--ink)" }}
+            onKeyDown={e => { if (e.key === "Enter") submit(); if (e.key === "Escape") { setEditing(false); setDraft(""); } }}
+          />
+          <button type="button" onClick={submit} style={{ padding: "5px 10px", borderRadius: "8px", background: "var(--ink)", color: "#fffdf7", border: "none", fontSize: "11px", fontWeight: 600, cursor: "pointer" }}>Set</button>
+          <button type="button" onClick={() => { setEditing(false); setDraft(""); }} style={{ padding: "5px 8px", borderRadius: "8px", background: "transparent", border: "1px solid var(--line)", fontSize: "11px", cursor: "pointer", color: "var(--ink-55)" }}>✕</button>
+        </div>
+      )}
+
       {limit ? (
         <div style={{ height: "6px", borderRadius: "3px", background: "var(--line)", overflow: "hidden" }}>
           <div style={{ height: "100%", width: `${pct}%`, background: over ? "var(--coral)" : color, borderRadius: "3px", transition: "width 0.6s ease" }} />
@@ -134,8 +184,13 @@ export default function BudgetPage() {
   const [editingNote, setEditingNote] = useState<string | null>(null);
   const [noteText, setNoteText] = useState("");
 
-  // Transaction list toggle
+  // Transaction list toggle + search
   const [showTxList, setShowTxList] = useState(false);
+  const [txSearch, setTxSearch] = useState("");
+  const [txTokenFilter, setTxTokenFilter] = useState<string>("all");
+
+  // Category limits
+  const [categoryLimits, setCategoryLimitsState] = useState<CategoryLimits>({});
 
   const totalBalance = useMemo(
     () => balances.reduce((s, b) => s + (parseFloat(b.displayAmount.replace(/,/g, "")) || 0), 0),
@@ -147,6 +202,7 @@ export default function BudgetPage() {
     void fetchFxRates().then(setFxRates);
     setContactMap(getContactMap());
     setAllNotes(getAllNotes());
+    setCategoryLimitsState(getCategoryLimits());
   }, []);
 
   useEffect(() => {
@@ -220,6 +276,47 @@ export default function BudgetPage() {
   const txList = useMemo(
     () => [...periodTxs].sort((a, b) => b.timestamp - a.timestamp),
     [periodTxs]
+  );
+
+  const filteredTxs = useMemo(() => {
+    const q = txSearch.trim().toLowerCase();
+    return txList.filter(tx => {
+      if (txTokenFilter !== "all" && tx.token !== txTokenFilter) return false;
+      if (!q) return true;
+      const contactName = resolveLabel(tx.counterpartyLabel, contactMap).toLowerCase();
+      return contactName.includes(q) || tx.counterpartyLabel.toLowerCase().includes(q) || (allNotes[tx.hash] ?? "").toLowerCase().includes(q);
+    });
+  }, [txList, txSearch, txTokenFilter, contactMap, allNotes]);
+
+  const availableTokens = useMemo(() => {
+    const set = new Set(txList.map(t => t.token));
+    return Array.from(set).sort();
+  }, [txList]);
+
+  function downloadCSV() {
+    const header = "Date,Type,Category,Token,Amount,Counterparty,Note";
+    const rows = txList.map(tx => [
+      new Date(tx.timestamp * 1000).toISOString().slice(0, 10),
+      tx.type,
+      tx.category,
+      tx.token,
+      parseFloat(tx.amount).toFixed(6),
+      `"${resolveLabel(tx.counterpartyLabel, contactMap).replace(/"/g, '""')}"`,
+      `"${(allNotes[tx.hash] ?? "").replace(/"/g, '""')}"`,
+    ].join(","));
+    const blob = new Blob([header + "\n" + rows.join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `akili-${walletAddress!.slice(0, 6)}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  const savingsGoalRules = useMemo(
+    () => getRules().filter(r => r.enabled && r.type === "savings_goal"),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [wallet]
   );
 
   function toLocal(usd: number): string | undefined {
@@ -421,6 +518,51 @@ export default function BudgetPage() {
                 </div>
               </div>
 
+              {/* Savings goals progress */}
+              {savingsGoalRules.length > 0 && (
+                <div>
+                  <div className="dashboard-section-head" style={{ marginBottom: "10px" }}>
+                    <p className="section-label">🎯 Savings goals</p>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {savingsGoalRules.map(rule => {
+                      const pct = Math.min(100, (totalBalance / rule.amount) * 100);
+                      const reached = totalBalance >= rule.amount;
+                      const barColor = reached ? "var(--green)" : pct >= 75 ? "var(--amber)" : "oklch(0.6 0.14 260)";
+                      return (
+                        <div key={rule.id} style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: "16px", padding: "12px 14px" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                            <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--ink)" }}>{rule.label}</span>
+                            <div style={{ textAlign: "right" }}>
+                              <span style={{ fontSize: "12px", fontWeight: 700, color: reached ? "var(--green-ink)" : "var(--ink-70)", fontFamily: "var(--font-mono)" }}>
+                                ${totalBalance.toFixed(2)} / ${rule.amount}
+                              </span>
+                              {toLocal(rule.amount) && (
+                                <div style={{ fontSize: "10px", color: "var(--ink-40)", fontFamily: "var(--font-mono)" }}>
+                                  goal: {toLocal(rule.amount)}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div style={{ height: "8px", borderRadius: "4px", background: "var(--line)", overflow: "hidden" }}>
+                            <div style={{ height: "100%", width: `${pct}%`, background: barColor, borderRadius: "4px", transition: "width 0.6s ease" }} />
+                          </div>
+                          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "4px" }}>
+                            <span style={{ fontSize: "10px", color: "var(--ink-40)" }}>{pct.toFixed(1)}%</span>
+                            {reached
+                              ? <span style={{ fontSize: "10px", color: "var(--green-ink)", fontWeight: 600 }}>Goal reached!</span>
+                              : <span style={{ fontSize: "10px", color: "var(--ink-40)" }}>
+                                ${(rule.amount - totalBalance).toFixed(2)} to go
+                              </span>
+                            }
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Spending by category */}
               {Object.keys(byCategory).length > 0 && (
                 <div style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: "18px", padding: "16px" }}>
@@ -439,7 +581,16 @@ export default function BudgetPage() {
                             emoji={meta.emoji}
                             color={meta.color}
                             actual={amt}
+                            limit={categoryLimits[cat] ?? undefined}
                             localAmt={toLocal(amt)}
+                            onSetLimit={v => {
+                              setCategoryLimit(cat, v);
+                              setCategoryLimitsState(getCategoryLimits());
+                            }}
+                            onClearLimit={() => {
+                              clearCategoryLimit(cat);
+                              setCategoryLimitsState(getCategoryLimits());
+                            }}
                           />
                         );
                       })}
@@ -550,20 +701,63 @@ export default function BudgetPage() {
               <div>
                 <div className="dashboard-section-head" style={{ marginBottom: "10px" }}>
                   <p className="section-label">Transactions</p>
-                  <button
-                    type="button"
-                    onClick={() => setShowTxList(p => !p)}
-                    style={{ fontSize: "11px", color: "var(--ink-55)", background: "none", border: "none", cursor: "pointer", padding: "2px 6px" }}
-                  >
-                    {showTxList ? "Hide" : `Show ${txList.length}`}
-                  </button>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    {txList.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={downloadCSV}
+                        style={{ fontSize: "11px", color: "var(--ink-55)", background: "var(--bg-soft)", border: "1px solid var(--line)", borderRadius: "8px", cursor: "pointer", padding: "3px 8px", fontWeight: 500 }}
+                      >
+                        ↓ CSV
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setShowTxList(p => !p)}
+                      style={{ fontSize: "11px", color: "var(--ink-55)", background: "none", border: "none", cursor: "pointer", padding: "2px 6px" }}
+                    >
+                      {showTxList ? "Hide" : `Show ${txList.length}`}
+                    </button>
+                  </div>
                 </div>
 
                 {showTxList && (
+                  <>
+                    {/* Search + token filter */}
+                    <div style={{ display: "flex", gap: "8px", marginBottom: "10px" }}>
+                      <input
+                        type="text"
+                        value={txSearch}
+                        onChange={e => setTxSearch(e.target.value)}
+                        placeholder="Search contacts or notes…"
+                        style={{
+                          flex: 1, fontSize: "12px", padding: "8px 12px", borderRadius: "10px",
+                          border: "1px solid var(--line)", background: "var(--bg-soft)",
+                          outline: "none", color: "var(--ink)",
+                        }}
+                      />
+                      {availableTokens.length > 1 && (
+                        <select
+                          value={txTokenFilter}
+                          onChange={e => setTxTokenFilter(e.target.value)}
+                          style={{
+                            fontSize: "12px", padding: "8px 10px", borderRadius: "10px",
+                            border: "1px solid var(--line)", background: "var(--bg-soft)",
+                            color: "var(--ink)", outline: "none", cursor: "pointer",
+                          }}
+                        >
+                          <option value="all">All tokens</option>
+                          {availableTokens.map(t => <option key={t} value={t}>{t}</option>)}
+                        </select>
+                      )}
+                    </div>
+
                   <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                    {txList.length === 0 ? (
-                      <div style={{ textAlign: "center", padding: "20px", color: "var(--ink-55)", fontSize: "13px" }}>No transactions in this period.</div>
-                    ) : txList.map(tx => {
+                    {filteredTxs.length === 0 ? (
+                      <div style={{ textAlign: "center", padding: "20px", color: "var(--ink-55)", fontSize: "13px" }}>
+                        {txSearch || txTokenFilter !== "all" ? "No matching transactions." : "No transactions in this period."}
+                      </div>
+                    ) : filteredTxs.map(tx => {
                       const isOut = tx.type === "sent" || tx.type === "contract";
                       const contactName = resolveLabel(tx.counterpartyLabel, contactMap);
                       const note = allNotes[tx.hash] ?? "";
@@ -621,6 +815,7 @@ export default function BudgetPage() {
                       );
                     })}
                   </div>
+                  </>
                 )}
               </div>
 
