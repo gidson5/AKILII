@@ -108,6 +108,29 @@ export const PERIOD_LABELS: Record<AlertPeriod, string> = {
   quarterly: "This quarter",
 };
 
+// ── Category limits ───────────────────────────────────────────────────────────
+
+const CATEGORY_LIMITS_KEY = "akili_category_limits_v1";
+
+export type CategoryLimits = Record<string, number>;
+
+export function getCategoryLimits(): CategoryLimits {
+  try { return JSON.parse(localStorage.getItem(CATEGORY_LIMITS_KEY) ?? "{}"); }
+  catch { return {}; }
+}
+
+export function setCategoryLimit(category: string, limit: number): void {
+  const limits = getCategoryLimits();
+  limits[category] = limit;
+  localStorage.setItem(CATEGORY_LIMITS_KEY, JSON.stringify(limits));
+}
+
+export function clearCategoryLimit(category: string): void {
+  const limits = getCategoryLimits();
+  delete limits[category];
+  localStorage.setItem(CATEGORY_LIMITS_KEY, JSON.stringify(limits));
+}
+
 export const FUNNY_QUOTES = [
   "Your wallet called. It needs a hug. 🫂",
   "Money flies when you're having fun. Yours just sprouted wings. 🪽",
