@@ -183,7 +183,7 @@ async function downloadStatement(content: string, address: string) {
     }
   }
 
-  // Footer
+  // Footer on every page
   const totalPages = (doc.internal as unknown as { getNumberOfPages: () => number }).getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
@@ -197,7 +197,16 @@ async function downloadStatement(content: string, address: string) {
     doc.text(`Page ${i} of ${totalPages}`, pageW - margin, ph - 7, { align: "right" });
   }
 
-  doc.save(`akili-statement-${address.slice(0, 6)}-${date}.pdf`);
+  // Use blob output + anchor click — works in all browsers including MiniPay's WebView
+  const blob = doc.output("blob");
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `akili-statement-${address.slice(0, 6)}-${date}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
 }
 
 // ── Charts ────────────────────────────────────────────────────────────────────
