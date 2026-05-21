@@ -47,6 +47,77 @@ function formatTime(d: Date) {
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
+function renderMarkdown(text: string): React.ReactNode[] {
+  const lines = text.split("\n");
+  const nodes: React.ReactNode[] = [];
+  let key = 0;
+
+  for (const line of lines) {
+    const k = key++;
+    const trimmed = line.trimStart();
+
+    // ### Header
+    if (trimmed.startsWith("### ")) {
+      nodes.push(
+        <div key={k} style={{ fontWeight: 700, fontSize: "13px", color: "var(--ink)", marginTop: "10px", marginBottom: "2px", letterSpacing: "-0.01em" }}>
+          {trimmed.slice(4)}
+        </div>
+      );
+      continue;
+    }
+
+    // Bullet line
+    if (trimmed.startsWith("- ") || trimmed.startsWith("• ")) {
+      nodes.push(
+        <div key={k} style={{ display: "flex", gap: "6px", marginTop: "2px" }}>
+          <span style={{ color: "var(--ink-55)", flexShrink: 0, marginTop: "1px" }}>•</span>
+          <span>{inlineBold(trimmed.slice(2))}</span>
+        </div>
+      );
+      continue;
+    }
+
+    // Numbered list
+    if (/^\d+\.\s/.test(trimmed)) {
+      const match = trimmed.match(/^(\d+)\.\s(.*)$/);
+      if (match) {
+        nodes.push(
+          <div key={k} style={{ display: "flex", gap: "6px", marginTop: "2px" }}>
+            <span style={{ color: "var(--ink-55)", flexShrink: 0, minWidth: "14px" }}>{match[1]}.</span>
+            <span>{inlineBold(match[2] ?? "")}</span>
+          </div>
+        );
+        continue;
+      }
+    }
+
+    // Empty line — spacing
+    if (trimmed === "") {
+      nodes.push(<div key={k} style={{ height: "4px" }} />);
+      continue;
+    }
+
+    // Normal paragraph line
+    nodes.push(<div key={k} style={{ marginTop: "2px" }}>{inlineBold(line)}</div>);
+  }
+
+  return nodes;
+}
+
+function inlineBold(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  if (parts.length === 1) return text;
+  return (
+    <>
+      {parts.map((p, i) =>
+        p.startsWith("**") && p.endsWith("**")
+          ? <strong key={i} style={{ fontWeight: 700 }}>{p.slice(2, -2)}</strong>
+          : p
+      )}
+    </>
+  );
+}
+
 function downloadStatement(content: string, address: string) {
   const date = new Date().toISOString().slice(0, 10);
   const divider = "─".repeat(48);
@@ -440,13 +511,12 @@ function CopilotInner() {
                   background: msg.role === "user" ? "var(--ink)" : "var(--surface)",
                   color: msg.role === "user" ? "#fffdf7" : "var(--ink)",
                   fontSize: "14px",
-                  lineHeight: "1.5",
-                  whiteSpace: "pre-wrap",
+                  lineHeight: "1.55",
                   wordBreak: "break-word",
                   border: msg.role === "assistant" ? "1px solid var(--line)" : "none",
                   boxShadow: msg.role === "assistant" ? "var(--shadow)" : "none"
                 }}>
-                  {msg.content}
+                  {msg.role === "assistant" ? renderMarkdown(msg.content) : msg.content}
                 </div>
 
                 {/* Share button for all assistant messages */}

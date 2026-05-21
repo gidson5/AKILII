@@ -201,42 +201,124 @@ ${linkupContext ? `\nEXTERNAL RESEARCH (via Linkup):\n${linkupContext}` : ""}
 
 const SYSTEM_BASE = `You are Akili, an AI financial intelligence assistant for MiniPay users in Africa (Nigeria, Kenya, Ghana).
 You analyze Celo blockchain wallet data and give clear, honest, actionable financial insights.
-Write in plain English. Be direct, warm, and specific. Never use jargon.
-Users hold USDC and USDT on Celo. Amounts are stablecoins pegged to USD.
-Always be encouraging but honest about spending patterns.`;
+
+FORMATTING RULES — follow exactly:
+- Use **bold** for key numbers, labels, and important findings.
+- Use bullet points (- item) for lists of tips, findings, or actions.
+- Use short section headers (### Header) to separate sections.
+- Keep paragraphs short (2-3 sentences max).
+- Never write walls of text.
+
+CONTEXT:
+- Users hold USDC and USDT on Celo (stablecoins pegged to USD).
+- "MiniPay Boost" is MiniPay's built-in savings feature that pays daily interest — transactions from it are interest income, not spending.
+- Amounts labeled "received" include both peer transfers and interest earned.
+- Be direct, warm, and specific. Mention actual dollar amounts from the data.
+- Always be encouraging but honest about spending patterns.`;
 
 const PROMPTS: Record<ReportType, (wallet: WalletSummary) => string> = {
   "spending-advice": (w) =>
-    `Analyze this wallet's spending over the last ${w.periodDays} days and give 3-5 specific, actionable spending tips. Mention actual amounts. Focus on waste and savings opportunities.`,
+    `Analyze this wallet's spending over the last ${w.periodDays} days. Give 3-5 specific, actionable tips.
+
+Format:
+### Spending Summary
+One sentence on overall pattern (mention total in and total out in USD).
+
+### Tips
+- **Tip title** — explanation with actual amounts from the data.
+(repeat for each tip)
+
+### Bottom Line
+One encouraging sentence with the single most important action.`,
 
   "account-summary": (w) =>
-    `Write a clear account summary for the last ${w.periodDays} days. Cover: total in vs out, key spending categories, net position, 2-3 notable observations. Format like a friendly bank statement summary.`,
+    `Write a clear account summary for the last ${w.periodDays} days.
+
+Format:
+### Account Summary — Last ${w.periodDays} Days
+**Total Received:** $X.XX (include interest from MiniPay Boost if present)
+**Total Sent:** $X.XX
+**Net Position:** $X.XX (positive = saving, negative = spending more than earning)
+
+### Key Activity
+- 2-3 bullet points on notable patterns
+
+### Notable Observations
+- 2-3 bullets on anything worth knowing`,
 
   "wallet-audit": (_w) =>
-    `Audit this wallet's financial health. Assess: (1) spending discipline, (2) fee efficiency, (3) risky or unknown contract interactions, (4) overall health. Give a health score 0-100 (higher = healthier) labeled clearly as "Health Score: X/100". Explain each dimension. Flag anything suspicious.`,
+    `Audit this wallet's financial health. Score each dimension and give an overall health score.
+
+Format:
+### Wallet Audit
+
+- **Spending Discipline: X/100** — one line explanation
+- **Fee Efficiency: X/100** — one line explanation
+- **Contract Safety: X/100** — flag any unknown or risky contracts; say "No risky contracts found" if clean
+- **Activity Health: X/100** — regularity and diversity
+
+### Health Score: X/100
+One sentence verdict (e.g. "Good — your wallet shows healthy habits with room to improve savings.")
+
+### Top 2 Improvements
+- improvement 1
+- improvement 2`,
 
   "wallet-statement": (w) =>
-    `Generate a formal wallet statement for the last ${w.periodDays} days. List transactions with dates, amounts, types, counterparties. End with totals summary. Format cleanly — may be used as proof of financial activity.`,
+    `Generate a formal wallet statement for the last ${w.periodDays} days, suitable as proof of financial activity.
+
+Format:
+### AKILI WALLET STATEMENT
+**Period:** Last ${w.periodDays} days
+**Address:** [wallet address]
+
+### Transactions
+List each transaction as:
+DATE | TYPE | AMOUNT TOKEN | COUNTERPARTY
+
+### Summary
+**Total Received:** $X.XX
+**Total Sent:** $X.XX
+**Net:** $X.XX
+**Network Fees:** $X.XX`,
 
   "monthly-plan": (w) =>
-    `Based on this wallet's ${w.periodDays}-day history, create a realistic personalized monthly financial plan. Include:
-1. Estimated monthly income (extrapolate from received amounts)
-2. Recommended monthly budget with specific allocations (savings, transfers, DeFi, buffer)
-3. A savings target with a reason
-4. 3 concrete actions to take this month
-Make it specific to their actual numbers, not generic advice.`,
+    `Create a realistic monthly financial plan based on this ${w.periodDays}-day history.
+
+Format:
+### Monthly Income Estimate
+**~$X.XX/month** — based on received amounts (include interest if present)
+
+### Recommended Budget
+- **Savings (X%):** $X.XX — reason
+- **Transfers/Payments (X%):** $X.XX
+- **Buffer (X%):** $X.XX
+
+### Savings Target
+**Goal:** $X.XX by [timeframe] — specific reason tied to their data
+
+### 3 Actions This Month
+1. action with specific amount
+2. action with specific amount
+3. action with specific amount`,
 
   "financial-health": (_w) =>
-    `Give a comprehensive financial health assessment for this wallet. Score each dimension out of 100:
-- Savings Rate (how much of income is kept vs spent)
-- Spending Discipline (consistency and control)
-- Fee Efficiency (network fees relative to activity)
-- Activity Health (regularity and diversity)
-- Overall Health Score
+    `Give a comprehensive financial health assessment.
 
-Format each as "Dimension: X/100 — one line explanation".
-Then give an overall narrative of 2-3 sentences with the top 2 improvements they can make.
-Label the overall score clearly as "Overall Health Score: X/100".`
+Format:
+### Financial Health Report
+
+- **Savings Rate: X/100** — explanation
+- **Spending Discipline: X/100** — explanation
+- **Fee Efficiency: X/100** — explanation
+- **Activity Health: X/100** — explanation
+
+### Overall Health Score: X/100
+**[Label]** — 2-3 sentence narrative.
+
+### Top 2 Improvements
+- improvement 1
+- improvement 2`
 };
 
 export async function generateWalletReport(
