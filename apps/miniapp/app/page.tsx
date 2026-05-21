@@ -51,28 +51,6 @@ function TokenLogo({ symbol }: { symbol: string }) {
   return <span className={`token-card__dot token-card__dot--${symbol.toLowerCase()}`} aria-hidden="true" />;
 }
 
-function SearchIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M10.5 10.5L14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function SparkIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
-      <path
-        d="M7 1.2v3.2M7 9.6v3.2M1.2 7h3.2M9.6 7h3.2M3 3l2.2 2.2M8.8 8.8L11 11M3 11l2.2-2.2M8.8 5.2L11 3"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 function ArrowRightIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -231,23 +209,6 @@ export default function HomePage() {
           </div>
         </header>
 
-        <Link
-          href={canAnalyze ? "/copilot" : "#"}
-          className="dashboard-search-card"
-          aria-label="Open AI Copilot"
-          onClick={(e) => { if (!canAnalyze) { e.preventDefault(); void miniPay.connect(); } }}
-        >
-          <span className="dashboard-search-card__icon">
-            <SearchIcon />
-          </span>
-          <span>
-            {canAnalyze ? "Ask about your wallet…" : "Connect wallet to start analysis"}
-          </span>
-          <span className="dashboard-search-card__spark">
-            <SparkIcon />
-          </span>
-        </Link>
-
         <section className="dashboard-home-stack">
           <article className="dashboard-hero-home">
             <div className="dashboard-hero-home__glow" aria-hidden="true" />
@@ -394,6 +355,8 @@ export default function HomePage() {
             ))}
           </div>
 
+          <CurrencyConverter />
+
           {miniPay.walletAddress && !balancesLoading && positiveBalances.length === 0 ? (
             <div className="wallet-empty-card">
               <strong>No stable balances found.</strong>
@@ -450,21 +413,7 @@ export default function HomePage() {
               <div className="dashboard-pin__meta">Health score and risk check.</div>
             </Link>
 
-            <Link href="/copilot" className="dashboard-chat-card dashboard-chat-card--bundle">
-              <div className="dashboard-chat-card__avatar" aria-hidden="true">
-                <span />
-              </div>
-              <div className="dashboard-chat-card__copy">
-                <div className="dashboard-action-card__title">Ask the Copilot</div>
-                <div className="dashboard-pin__meta">Plain answers about your wallet.</div>
-              </div>
-              <span className="dashboard-chat-card__arrow">
-                <ArrowRightIcon />
-              </span>
-            </Link>
           </div>
-
-          <CurrencyConverter />
 
           <div className="dashboard-insight-row">
             <Link
