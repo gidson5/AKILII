@@ -8,10 +8,18 @@ const KNOWN_TOKENS: Record<string, string> = {
   "0xe8537a3d056da446677b9e9d6c5db704eaab4787": "cREAL"
 };
 
+// Label any recognised protocol address
 const KNOWN_CONTRACTS: Record<string, string> = {
-  "0x1111111111111111111111111111111111111111": "MiniPay Boost",
+  // MiniPay Boost / savings yield — interest payments come from here
+  "0x9b7c9c5b4033ef34f876f4afc76b6beaca46e4e1": "MiniPay Boost",
+  "0x3b7b1e5f94d7b4f36bf5fb2d5b9e7e37a3f4c2d1": "MiniPay Boost",
+  // Mento exchange
+  "0x67316300f17f063085ca8bca4bd3f7a5a3c66275": "Mento",
+  "0x7d3f3d3f4accc03ee32f9f4c4f94e8f3e1d7c4b2": "Mento",
+  // Ubeswap
   "0x00be914168be31c5b5b314f0c3be5a28b9e00000": "Ubeswap",
-  "0x3d79edaabc0eab6f08ed885c05fc0b014290d95a": "Mento",
+  // Celo staking / lock gold
+  "0x6cc083aed9e3ebe302a6336dbe7ef19d51a63156": "Celo Staking",
 };
 
 export type CeloTransaction = {
@@ -81,20 +89,24 @@ function formatAmount(value: string, decimals = 18): string {
   return num.toFixed(4);
 }
 
-function parseTx(tx: CeloTransaction, walletAddress: string): ParsedTransaction {
+// isTokenTx = true means this came from the tokentx endpoint (ERC-20 transfer event).
+// In that case: to/from are the actual token sender/receiver, never classify as "contract".
+function parseTx(tx: CeloTransaction, walletAddress: string, isTokenTx = false): ParsedTransaction {
   const wallet = walletAddress.toLowerCase();
   const isIncoming = tx.to?.toLowerCase() === wallet;
-  const isContract = tx.input && tx.input !== "0x" && tx.input.length > 2;
   const failed = tx.isError === "1";
+
+  // Never treat ERC-20 transfer events as contract/defi — they are plain token sends/receives.
+  const isContractCall = !isTokenTx && !failed && tx.input && tx.input !== "0x" && tx.input.length > 2;
 
   let type: ParsedTransaction["type"] = isIncoming ? "received" : "sent";
   if (failed) type = "failed";
-  if (isContract && !isIncoming) type = "contract";
+  if (isContractCall && !isIncoming) type = "contract";
 
   const category: ParsedTransaction["category"] =
     failed ? "fee" :
-    isContract ? "defi" :
-    (isIncoming || type === "sent") ? "transfer" : "unknown";
+    isContractCall ? "defi" :
+    "transfer";
 
   const token = tx.tokenSymbol ??
     (KNOWN_TOKENS[tx.contractAddress?.toLowerCase() ?? ""] ?? "CELO");
@@ -132,7 +144,7 @@ export async function fetchWalletData(
 ): Promise<WalletSummary> {
   const startTimestamp = Math.floor(Date.now() / 1000) - days * 86400;
 
-  const [nativeTxs, tokenTxs] = await Promise.allSettled([
+  const [nativeTxsResult, tokenTxsResult] = await Promise.allSettled([
     celoscan({
       module: "account",
       action: "txlist",
@@ -151,35 +163,49 @@ export async function fetchWalletData(
     })
   ]);
 
-  const allRaw: CeloTransaction[] = [];
+  const nativeRaw: CeloTransaction[] =
+    nativeTxsResult.status === "fulfilled" && Array.isArray(nativeTxsResult.value.result)
+      ? nativeTxsResult.value.result.filter(t => Number(t.timeStamp) >= startTimestamp)
+      : [];
 
-  if (nativeTxs.status === "fulfilled" && Array.isArray(nativeTxs.value.result)) {
-    allRaw.push(...nativeTxs.value.result.filter(t => Number(t.timeStamp) >= startTimestamp));
-  }
-  if (tokenTxs.status === "fulfilled" && Array.isArray(tokenTxs.value.result)) {
-    allRaw.push(...tokenTxs.value.result.filter(t => Number(t.timeStamp) >= startTimestamp));
-  }
+  const tokenRaw: CeloTransaction[] =
+    tokenTxsResult.status === "fulfilled" && Array.isArray(tokenTxsResult.value.result)
+      ? tokenTxsResult.value.result.filter(t => Number(t.timeStamp) >= startTimestamp)
+      : [];
 
-  // deduplicate by hash + token
+  // Token transfer hashes: skip native txlist entries for these hashes
+  // (they show 0 CELO and just create noise — the tokentx entry has the real data)
+  const tokenTxHashes = new Set(tokenRaw.map(t => t.hash));
+
+  const parsedNative = nativeRaw
+    .filter(tx => {
+      // Keep native entries only if:
+      // (a) not a token transfer hash, OR (b) has actual CELO value > 0
+      return !tokenTxHashes.has(tx.hash) || (tx.value && tx.value !== "0");
+    })
+    .map(tx => parseTx(tx, walletAddress, false));
+
+  const parsedToken = tokenRaw.map(tx => parseTx(tx, walletAddress, true));
+
+  // Merge and deduplicate by hash + token symbol
   const seen = new Set<string>();
-  const unique = allRaw.filter(tx => {
-    const key = `${tx.hash}-${tx.tokenSymbol ?? "native"}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-
-  const transactions = unique
-    .map(tx => parseTx(tx, walletAddress))
+  const transactions = [...parsedToken, ...parsedNative]
+    .filter(tx => {
+      const key = `${tx.hash}-${tx.token}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
     .sort((a, b) => b.timestamp - a.timestamp);
 
-  // aggregate totals
+  // Aggregate totals
   const totalReceived: Record<string, number> = {};
   const totalSent: Record<string, number> = {};
   let totalGasFeesUSD = 0;
 
   for (const tx of transactions) {
     const amt = parseFloat(tx.amount);
+    if (isNaN(amt) || amt === 0) continue;
     if (tx.type === "received") {
       totalReceived[tx.token] = (totalReceived[tx.token] ?? 0) + amt;
     } else if (tx.type === "sent" || tx.type === "contract") {
@@ -197,9 +223,7 @@ export async function fetchWalletData(
     )
   ];
 
-  const unknownContracts = uniqueContracts.filter(
-    addr => !KNOWN_CONTRACTS[addr]
-  );
+  const unknownContracts = uniqueContracts.filter(addr => !KNOWN_CONTRACTS[addr]);
 
   return {
     address: walletAddress,
