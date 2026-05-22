@@ -6,7 +6,11 @@ import { useMiniPay } from "../../hooks/use-minipay";
 import { BottomNav } from "../../components/bottom-nav";
 import { toast } from "../../components/toast";
 import { haptic } from "../../lib/haptics";
-import { hasPaidRecently, payForStatement, PDF_PRICE_DISPLAY } from "../../lib/payment";
+import {
+  AI_PRICE_DISPLAY, FREE_LIMIT,
+  getFreeAuditsRemaining, getFreeChatRemaining,
+  recordAuditUsed, recordChatUsed, payForAI,
+} from "../../lib/payment";
 import Link from "next/link";
 
 type Message = {
@@ -200,8 +204,9 @@ async function downloadStatement(content: string, address: string) {
   }
 
   const filename = `akili-statement-${address.slice(0, 6)}-${date}.pdf`;
+  const dataUri = doc.output("datauristring");
 
-  // Try Web Share API first (iOS Safari, some Android browsers)
+  // iOS — Web Share API with file
   const blob = doc.output("blob");
   const file = new File([blob], filename, { type: "application/pdf" });
   if (navigator.canShare?.({ files: [file] })) {
@@ -209,8 +214,20 @@ async function downloadStatement(content: string, address: string) {
     return;
   }
 
-  // Android WebView rejects blob: URIs — use base64 data URI instead
-  const dataUri = doc.output("datauristring");
+  // Android WebView — open PDF in new tab; user can share/save from browser chrome
+  const newWin = window.open("", "_blank");
+  if (newWin) {
+    newWin.document.write(
+      `<!DOCTYPE html><html><head><title>${filename}</title></head>` +
+      `<body style="margin:0;background:#222">` +
+      `<embed src="${dataUri}" type="application/pdf" width="100%" height="100%" style="height:100vh"/>` +
+      `</body></html>`
+    );
+    newWin.document.close();
+    return;
+  }
+
+  // Desktop fallback — anchor download
   const a = document.createElement("a");
   a.href = dataUri;
   a.download = filename;
@@ -371,6 +388,10 @@ function CopilotInner() {
 
   const [tab, setTab] = useState<"chat" | "insights">(tabParam === "insights" ? "insights" : "chat");
   const [payingForId, setPayingForId] = useState<string | null>(null);
+  const [freeAudits, setFreeAudits] = useState(FREE_LIMIT);
+  const [freeChat, setFreeChat] = useState(FREE_LIMIT);
+  const [paywallPending, setPaywallPending] = useState<{ content: string; reportType?: string } | null>(null);
+  const [paying, setPaying] = useState(false);
   const [messages, setMessages] = useState<Message[]>([{
     id: "welcome",
     role: "assistant",
@@ -384,6 +405,11 @@ function CopilotInner() {
   const [insightsError, setInsightsError] = useState("");
   const [insightsDays, setInsightsDays] = useState(90);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setFreeAudits(getFreeAuditsRemaining());
+    setFreeChat(getFreeChatRemaining());
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -424,11 +450,9 @@ function CopilotInner() {
     }
   }
 
-  async function sendMessage(content: string, reportType?: string) {
-    if (!content.trim() || !address) return;
-    haptic("light");
-    const userMsg: Message = { id: Date.now().toString(), role: "user", content, timestamp: new Date() };
-    setMessages(prev => [...prev, userMsg]);
+  async function executeMessage(content: string, reportType?: string, userMsgOverride?: Message) {
+    const userMsg: Message = userMsgOverride ?? { id: Date.now().toString(), role: "user", content, timestamp: new Date() };
+    if (!userMsgOverride) setMessages(prev => [...prev, userMsg]);
     setInput("");
     setChatLoading(true);
     try {
@@ -451,10 +475,7 @@ function CopilotInner() {
         const errMsg =
           res.status === 429
             ? "You're sending messages too quickly. Please wait a moment and try again."
-            : res.status === 402
-            ? "A small payment is required to run this analysis."
-            : typeof data.error === "string"
-            ? data.error
+            : typeof data.error === "string" ? data.error
             : "Something went wrong. Please try again.";
         setMessages(prev => [...prev, { id: `${Date.now()}-e`, role: "assistant", content: errMsg, timestamp: new Date() }]);
         return;
@@ -467,6 +488,9 @@ function CopilotInner() {
         timestamp: new Date(),
         ...(reportType ? { reportType } : {})
       }]);
+      // Record usage and refresh counters
+      if (reportType) { recordAuditUsed(); setFreeAudits(getFreeAuditsRemaining()); }
+      else { recordChatUsed(); setFreeChat(getFreeChatRemaining()); }
     } catch {
       setMessages(prev => [...prev, {
         id: `${Date.now()}-e`,
@@ -477,6 +501,21 @@ function CopilotInner() {
     } finally {
       setChatLoading(false);
     }
+  }
+
+  async function sendMessage(content: string, reportType?: string) {
+    if (!content.trim() || !address) return;
+    haptic("light");
+    const isReport = Boolean(reportType);
+    const remaining = isReport ? getFreeAuditsRemaining() : getFreeChatRemaining();
+    if (remaining === 0) {
+      const userMsg: Message = { id: Date.now().toString(), role: "user", content, timestamp: new Date() };
+      setMessages(prev => [...prev, userMsg]);
+      setInput("");
+      setPaywallPending(reportType ? { content, reportType } : { content });
+      return;
+    }
+    await executeMessage(content, reportType);
   }
 
   if (!isConnected || !address) {
@@ -555,7 +594,18 @@ function CopilotInner() {
       {/* ── Chat tab ── */}
       {tab === "chat" && (
         <div className="tab-panel-enter" style={{ display: "contents" }}>
-          <div className="brief-chip-row" style={{ padding: "10px 16px", overflowX: "auto", flexWrap: "nowrap", borderBottom: "1px solid var(--line)", flexShrink: 0 }}>
+          <div style={{ padding: "6px 16px 0", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+            <span style={{ fontSize: "11px", color: "var(--ink-55)" }}>
+              {freeAudits > 0
+                ? `${freeAudits} free ${freeAudits === 1 ? "analysis" : "analyses"} left`
+                : `${AI_PRICE_DISPLAY} per analysis`}
+              {" · "}
+              {freeChat > 0
+                ? `${freeChat} free ${freeChat === 1 ? "chat" : "chats"} left`
+                : `${AI_PRICE_DISPLAY} per chat`}
+            </span>
+          </div>
+          <div className="brief-chip-row" style={{ padding: "6px 16px 10px", overflowX: "auto", flexWrap: "nowrap", borderBottom: "1px solid var(--line)", flexShrink: 0 }}>
             {QUICK_ACTIONS.map(a => (
               <button
                 key={a.reportType}
@@ -612,26 +662,18 @@ function CopilotInner() {
                   </button>
                 )}
 
-                {/* Download button for statement reports — $0.05 USDC gate */}
+                {/* Download button for statement reports — free (paid at analysis level) */}
                 {msg.role === "assistant" && msg.reportType === "wallet-statement" && (
                   <button
                     type="button"
                     disabled={payingForId === msg.id}
                     onClick={async () => {
-                      if (hasPaidRecently()) {
-                        await downloadStatement(msg.content, address);
-                        toast.success("Statement downloaded");
-                        return;
-                      }
                       setPayingForId(msg.id);
                       try {
-                        const txHash = await payForStatement();
-                        toast.success("Payment confirmed");
                         await downloadStatement(msg.content, address);
-                        toast.success("Statement downloaded");
-                        console.info("PDF payment tx:", txHash);
+                        toast.success("Statement ready");
                       } catch (e) {
-                        toast.error(e instanceof Error ? e.message : "Payment failed");
+                        toast.error(e instanceof Error ? e.message : "Download failed");
                       } finally {
                         setPayingForId(null);
                       }
@@ -654,11 +696,7 @@ function CopilotInner() {
                     }}
                   >
                     <DownloadIcon />
-                    {payingForId === msg.id
-                      ? "Waiting for payment…"
-                      : hasPaidRecently()
-                        ? "Download PDF"
-                        : `Download PDF — ${PDF_PRICE_DISPLAY}`}
+                    {payingForId === msg.id ? "Opening…" : "Download PDF"}
                   </button>
                 )}
 
@@ -689,6 +727,56 @@ function CopilotInner() {
                 </div>
               </div>
             )}
+            {/* Paywall prompt */}
+            {paywallPending && !chatLoading && (
+              <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+                <span style={{
+                  width: "28px", height: "28px", borderRadius: "50%", flexShrink: 0,
+                  background: "var(--slab)", color: "var(--slab-ink)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontWeight: 700, fontSize: "12px"
+                }}>A</span>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxWidth: "80%" }}>
+                  <div style={{
+                    background: "var(--surface)", border: "1px solid var(--line)",
+                    boxShadow: "var(--shadow)", borderRadius: "18px 18px 18px 4px",
+                    padding: "12px 16px", fontSize: "13px", lineHeight: 1.5
+                  }}>
+                    <strong style={{ display: "block", marginBottom: "4px" }}>Free limit reached</strong>
+                    You&apos;ve used your {FREE_LIMIT} free {paywallPending.reportType ? "analyses" : "chat messages"}.
+                    Pay {AI_PRICE_DISPLAY} USDC to continue.
+                  </div>
+                  <button
+                    type="button"
+                    disabled={paying}
+                    onClick={async () => {
+                      setPaying(true);
+                      try {
+                        await payForAI();
+                        toast.success("Payment confirmed");
+                        const { content, reportType } = paywallPending;
+                        setPaywallPending(null);
+                        await executeMessage(content, reportType);
+                      } catch (e) {
+                        toast.error(e instanceof Error ? e.message : "Payment failed");
+                      } finally {
+                        setPaying(false);
+                      }
+                    }}
+                    style={{
+                      alignSelf: "flex-start", display: "inline-flex", alignItems: "center",
+                      gap: "6px", padding: "8px 16px", borderRadius: "999px",
+                      background: "var(--slab)", color: "var(--slab-ink)",
+                      border: "none", fontSize: "13px", fontWeight: 600,
+                      cursor: paying ? "not-allowed" : "pointer", opacity: paying ? 0.6 : 1
+                    }}
+                  >
+                    {paying ? "Confirming…" : `Pay ${AI_PRICE_DISPLAY} USDC`}
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div ref={messagesEndRef} />
           </div>
 
