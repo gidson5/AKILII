@@ -227,79 +227,75 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="dashboard-balance-card__amount">
-              {selectedBalance?.hasBalance
-                ? `${selectedBalance.displayAmount} ${selectedBalance.symbol}`
-                : miniPay.walletAddress
-                  ? "0 stable balance"
-                  : "••••"}
+            {/* Balance + eye icon on one row */}
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+              <div className="dashboard-balance-card__amount">
+                {selectedBalance?.hasBalance
+                  ? `${selectedBalance.displayAmount} ${selectedBalance.symbol}`
+                  : miniPay.walletAddress
+                    ? "0 stable balance"
+                    : "••••"}
+              </div>
+              <div style={{ color: "var(--slab-ink-70)", marginTop: "6px", flexShrink: 0 }}>
+                <EyeOffIcon />
+              </div>
             </div>
 
-            {/* Local currency equivalent */}
-            {miniPay.walletAddress && fxRates && localCurrency !== "USD" && (() => {
-              const total = positiveBalances.reduce((s, b) => s + parseFloat(b.displayAmount.replace(/,/g, "") || "0"), 0);
-              return total > 0 ? (
-                <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.65)", marginTop: "2px", fontFamily: "var(--font-mono)" }}>
-                  ≈ {formatLocal(convertUSD(total, localCurrency, fxRates), localCurrency)}
-                </div>
-              ) : null;
-            })()}
-
-            {/* Currency selector */}
-            <div style={{ position: "relative", marginTop: "8px" }}>
-              <button
-                type="button"
-                onClick={() => setShowCurrencyPicker(p => !p)}
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: "4px",
-                  background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)",
-                  borderRadius: "999px", padding: "3px 10px", cursor: "pointer",
-                  fontSize: "11px", color: "rgba(255,255,255,0.85)", fontWeight: 600
-                }}
-              >
-                {CURRENCY_META[localCurrency].flag} {localCurrency} ▾
-              </button>
-              {showCurrencyPicker && (
-                <div style={{
-                  position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 50,
-                  background: "var(--surface)", border: "1px solid var(--line)", borderRadius: "14px",
-                  padding: "6px", boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
-                  display: "flex", flexDirection: "column", gap: "2px", minWidth: "160px"
-                }}>
-                  {LOCAL_CURRENCIES.map(cur => (
-                    <button
-                      key={cur}
-                      type="button"
-                      onClick={() => {
-                        setLocalCurrency(cur);
-                        setPreferredCurrency(cur);
-                        setShowCurrencyPicker(false);
-                      }}
-                      style={{
-                        display: "flex", alignItems: "center", gap: "8px",
-                        padding: "8px 10px", borderRadius: "10px", border: "none",
-                        background: cur === localCurrency ? "var(--bg-soft)" : "transparent",
-                        cursor: "pointer", fontSize: "13px", color: "var(--ink)", textAlign: "left"
-                      }}
-                    >
-                      <span>{CURRENCY_META[cur].flag}</span>
-                      <span style={{ fontWeight: cur === localCurrency ? 700 : 400 }}>{cur}</span>
-                      <span style={{ fontSize: "11px", color: "var(--ink-40)", marginLeft: "auto" }}>{CURRENCY_META[cur].symbol}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
+            {/* Local currency + currency selector on one row */}
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+              {miniPay.walletAddress && fxRates && localCurrency !== "USD" && (() => {
+                const total = positiveBalances.reduce((s, b) => s + parseFloat(b.displayAmount.replace(/,/g, "") || "0"), 0);
+                return total > 0 ? (
+                  <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.65)", fontFamily: "var(--font-mono)" }}>
+                    ≈ {formatLocal(convertUSD(total, localCurrency, fxRates), localCurrency)}
+                  </span>
+                ) : null;
+              })()}
+              <div style={{ position: "relative" }}>
+                <button
+                  type="button"
+                  onClick={() => setShowCurrencyPicker(p => !p)}
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: "4px",
+                    background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)",
+                    borderRadius: "999px", padding: "3px 10px", cursor: "pointer",
+                    fontSize: "11px", color: "rgba(255,255,255,0.85)", fontWeight: 600
+                  }}
+                >
+                  {CURRENCY_META[localCurrency].flag} {localCurrency} ▾
+                </button>
+                {showCurrencyPicker && (
+                  <div style={{
+                    position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 50,
+                    background: "var(--surface)", border: "1px solid var(--line)", borderRadius: "14px",
+                    padding: "6px", boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+                    display: "flex", flexDirection: "column", gap: "2px", minWidth: "160px"
+                  }}>
+                    {LOCAL_CURRENCIES.map(cur => (
+                      <button
+                        key={cur}
+                        type="button"
+                        onClick={() => {
+                          setLocalCurrency(cur);
+                          setPreferredCurrency(cur);
+                          setShowCurrencyPicker(false);
+                        }}
+                        style={{
+                          display: "flex", alignItems: "center", gap: "8px",
+                          padding: "8px 10px", borderRadius: "10px", border: "none",
+                          background: cur === localCurrency ? "var(--bg-soft)" : "transparent",
+                          cursor: "pointer", fontSize: "13px", color: "var(--ink)", textAlign: "left"
+                        }}
+                      >
+                        <span>{CURRENCY_META[cur].flag}</span>
+                        <span style={{ fontWeight: cur === localCurrency ? 700 : 400 }}>{cur}</span>
+                        <span style={{ fontSize: "11px", color: "var(--ink-40)", marginLeft: "auto" }}>{CURRENCY_META[cur].symbol}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-
-            <div className="dashboard-hero-home__eye">
-              <EyeOffIcon />
-            </div>
-
-            <p className="dashboard-hero-home__headline">
-              {canAnalyze
-                ? "Analyze your spending, audit your wallet, and get a personalized financial health score."
-                : "Connect your wallet to unlock AI-powered financial insights."}
-            </p>
 
             <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
               {[
