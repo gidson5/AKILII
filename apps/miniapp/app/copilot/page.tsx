@@ -6,6 +6,7 @@ import { useMiniPay } from "../../hooks/use-minipay";
 import { BottomNav } from "../../components/bottom-nav";
 import { toast } from "../../components/toast";
 import { haptic } from "../../lib/haptics";
+import { hasPaidRecently, payForStatement, PDF_PRICE_DISPLAY } from "../../lib/payment";
 import Link from "next/link";
 
 type Message = {
@@ -369,6 +370,7 @@ function CopilotInner() {
   const autoTriggered = useRef(false);
 
   const [tab, setTab] = useState<"chat" | "insights">(tabParam === "insights" ? "insights" : "chat");
+  const [payingForId, setPayingForId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([{
     id: "welcome",
     role: "assistant",
@@ -610,11 +612,30 @@ function CopilotInner() {
                   </button>
                 )}
 
-                {/* Download button for statement reports */}
+                {/* Download button for statement reports — $0.05 USDC gate */}
                 {msg.role === "assistant" && msg.reportType === "wallet-statement" && (
                   <button
                     type="button"
-                    onClick={() => { downloadStatement(msg.content, address); toast.success("Statement downloaded"); }}
+                    disabled={payingForId === msg.id}
+                    onClick={async () => {
+                      if (hasPaidRecently()) {
+                        await downloadStatement(msg.content, address);
+                        toast.success("Statement downloaded");
+                        return;
+                      }
+                      setPayingForId(msg.id);
+                      try {
+                        const txHash = await payForStatement();
+                        toast.success("Payment confirmed");
+                        await downloadStatement(msg.content, address);
+                        toast.success("Statement downloaded");
+                        console.info("PDF payment tx:", txHash);
+                      } catch (e) {
+                        toast.error(e instanceof Error ? e.message : "Payment failed");
+                      } finally {
+                        setPayingForId(null);
+                      }
+                    }}
                     style={{
                       marginTop: "6px",
                       display: "inline-flex",
@@ -627,12 +648,17 @@ function CopilotInner() {
                       color: "var(--ink-70)",
                       fontSize: "12px",
                       fontWeight: 500,
-                      cursor: "pointer",
-                      boxShadow: "var(--shadow)"
+                      cursor: payingForId === msg.id ? "not-allowed" : "pointer",
+                      boxShadow: "var(--shadow)",
+                      opacity: payingForId === msg.id ? 0.6 : 1,
                     }}
                   >
                     <DownloadIcon />
-                    Download PDF
+                    {payingForId === msg.id
+                      ? "Waiting for payment…"
+                      : hasPaidRecently()
+                        ? "Download PDF"
+                        : `Download PDF — ${PDF_PRICE_DISPLAY}`}
                   </button>
                 )}
 

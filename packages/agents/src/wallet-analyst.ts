@@ -383,7 +383,12 @@ You have access to this user's Celo wallet data:
 
 ${walletContext}
 
-Answer questions directly using this data. If you don't recognise a specific transaction or address, say so honestly. Keep answers concise and conversational.`;
+Answer questions directly using this data. If you don't recognise a specific transaction or address, say so honestly. Keep answers concise and conversational.
+
+STRICT TOPIC BOUNDARY:
+- You ONLY discuss topics directly related to this user's wallet: transactions, balances, spending patterns, savings, fees, DeFi activity, and financial health.
+- If the user asks about ANYTHING unrelated to their wallet or personal finances (e.g. general knowledge, coding, news, sports, opinions, crypto prices in general, other people's wallets), respond with exactly: "I can only help with questions about your wallet and finances. What would you like to know about your transactions or spending?"
+- Do not engage with off-topic messages even briefly. Redirect immediately.`;
 
   const completion = await openai.chat.completions.create({
     model: MODEL,
