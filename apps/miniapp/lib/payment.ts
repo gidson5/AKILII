@@ -4,11 +4,12 @@ import { encodeFunctionData, parseUnits } from "viem";
 
 const USDC_ADDRESS = "0xcebA9300f2b948710d2653dD7B07f33A8B32118C" as `0x${string}`;
 
-export const PDF_PRICE_DISPLAY = "$0.05";
-export const PDF_PRICE_USDC = parseUnits("0.05", 6); // 50_000 — USDC has 6 decimals
+export const FREE_LIMIT = 3;
+export const AI_PRICE_USDC = parseUnits("0.002", 6);
+export const AI_PRICE_DISPLAY = "$0.002";
 
-const PAID_KEY = "akili_pdf_paid_until";
-const PAID_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const AUDITS_KEY = "akili_audits_used";
+const CHAT_KEY = "akili_chat_used";
 
 const TRANSFER_ABI = [
   {
@@ -23,24 +24,41 @@ const TRANSFER_ABI = [
   },
 ] as const;
 
-export function hasPaidRecently(): boolean {
-  try {
-    const until = Number(localStorage.getItem(PAID_KEY) ?? "0");
-    return Date.now() < until;
-  } catch { return false; }
+// ── Audit counter ─────────────────────────────────────────────────────────────
+
+export function getAuditsUsed(): number {
+  try { return Number(localStorage.getItem(AUDITS_KEY) ?? "0"); } catch { return 0; }
 }
 
-function recordPayment(): void {
-  try {
-    localStorage.setItem(PAID_KEY, String(Date.now() + PAID_TTL));
-  } catch { /* ignore */ }
+export function getFreeAuditsRemaining(): number {
+  return Math.max(0, FREE_LIMIT - getAuditsUsed());
 }
+
+export function recordAuditUsed(): void {
+  try { localStorage.setItem(AUDITS_KEY, String(getAuditsUsed() + 1)); } catch {}
+}
+
+// ── Chat counter ──────────────────────────────────────────────────────────────
+
+export function getChatUsed(): number {
+  try { return Number(localStorage.getItem(CHAT_KEY) ?? "0"); } catch { return 0; }
+}
+
+export function getFreeChatRemaining(): number {
+  return Math.max(0, FREE_LIMIT - getChatUsed());
+}
+
+export function recordChatUsed(): void {
+  try { localStorage.setItem(CHAT_KEY, String(getChatUsed() + 1)); } catch {}
+}
+
+// ── Payment ───────────────────────────────────────────────────────────────────
 
 type EthProvider = {
   request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
 };
 
-export async function payForStatement(): Promise<string> {
+export async function payForAI(): Promise<string> {
   const recipient = process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT as `0x${string}` | undefined;
   if (!recipient) throw new Error("Payment recipient not configured.");
 
@@ -53,7 +71,7 @@ export async function payForStatement(): Promise<string> {
   const data = encodeFunctionData({
     abi: TRANSFER_ABI,
     functionName: "transfer",
-    args: [recipient, PDF_PRICE_USDC],
+    args: [recipient, AI_PRICE_USDC],
   });
 
   const txHash = await ethereum.request({
@@ -66,6 +84,5 @@ export async function payForStatement(): Promise<string> {
     }],
   }) as string;
 
-  recordPayment();
   return txHash;
 }
