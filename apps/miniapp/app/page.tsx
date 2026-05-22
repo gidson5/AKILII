@@ -3,7 +3,7 @@
 import type { Token } from "@yield-copilot/shared";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BottomNav } from "../components/bottom-nav";
 import { CurrencyConverter } from "../components/currency-converter";
 import { SpendingAlertModal } from "../components/spending-alert-modal";
@@ -126,6 +126,8 @@ export default function HomePage() {
   const [localCurrency, setLocalCurrency] = useState<LocalCurrency>("USD");
   const [fxRates, setFxRates] = useState<FxRates | null>(null);
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
+  const [pickerPos, setPickerPos] = useState({ top: 0, left: 0 });
+  const currencyBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     try {
@@ -251,50 +253,25 @@ export default function HomePage() {
                   </span>
                 ) : null;
               })()}
-              <div style={{ position: "relative" }}>
-                <button
-                  type="button"
-                  onClick={() => setShowCurrencyPicker(p => !p)}
-                  style={{
-                    display: "inline-flex", alignItems: "center", gap: "4px",
-                    background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)",
-                    borderRadius: "999px", padding: "3px 10px", cursor: "pointer",
-                    fontSize: "11px", color: "rgba(255,255,255,0.85)", fontWeight: 600
-                  }}
-                >
-                  {CURRENCY_META[localCurrency].flag} {localCurrency} ▾
-                </button>
-                {showCurrencyPicker && (
-                  <div style={{
-                    position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 50,
-                    background: "var(--surface)", border: "1px solid var(--line)", borderRadius: "14px",
-                    padding: "6px", boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
-                    display: "flex", flexDirection: "column", gap: "2px", minWidth: "160px"
-                  }}>
-                    {LOCAL_CURRENCIES.map(cur => (
-                      <button
-                        key={cur}
-                        type="button"
-                        onClick={() => {
-                          setLocalCurrency(cur);
-                          setPreferredCurrency(cur);
-                          setShowCurrencyPicker(false);
-                        }}
-                        style={{
-                          display: "flex", alignItems: "center", gap: "8px",
-                          padding: "8px 10px", borderRadius: "10px", border: "none",
-                          background: cur === localCurrency ? "var(--bg-soft)" : "transparent",
-                          cursor: "pointer", fontSize: "13px", color: "var(--ink)", textAlign: "left"
-                        }}
-                      >
-                        <span>{CURRENCY_META[cur].flag}</span>
-                        <span style={{ fontWeight: cur === localCurrency ? 700 : 400 }}>{cur}</span>
-                        <span style={{ fontSize: "11px", color: "var(--ink-40)", marginLeft: "auto" }}>{CURRENCY_META[cur].symbol}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <button
+                ref={currencyBtnRef}
+                type="button"
+                onClick={() => {
+                  if (!showCurrencyPicker && currencyBtnRef.current) {
+                    const r = currencyBtnRef.current.getBoundingClientRect();
+                    setPickerPos({ top: r.bottom + 6, left: r.left });
+                  }
+                  setShowCurrencyPicker(p => !p);
+                }}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: "4px",
+                  background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)",
+                  borderRadius: "999px", padding: "3px 10px", cursor: "pointer",
+                  fontSize: "11px", color: "rgba(255,255,255,0.85)", fontWeight: 600
+                }}
+              >
+                {CURRENCY_META[localCurrency].flag} {localCurrency} ▾
+              </button>
             </div>
 
             <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
@@ -465,6 +442,44 @@ export default function HomePage() {
 
         <BottomNav />
       </div>
+
+      {/* Currency picker rendered outside overflow:hidden card so it isn't clipped */}
+      {showCurrencyPicker && (
+        <>
+          <div
+            onClick={() => setShowCurrencyPicker(false)}
+            style={{ position: "fixed", inset: 0, zIndex: 199 }}
+          />
+          <div style={{
+            position: "fixed", top: pickerPos.top, left: pickerPos.left, zIndex: 200,
+            background: "var(--surface)", border: "1px solid var(--line)", borderRadius: "14px",
+            padding: "6px", boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+            display: "flex", flexDirection: "column", gap: "2px", minWidth: "160px"
+          }}>
+            {LOCAL_CURRENCIES.map(cur => (
+              <button
+                key={cur}
+                type="button"
+                onClick={() => {
+                  setLocalCurrency(cur);
+                  setPreferredCurrency(cur);
+                  setShowCurrencyPicker(false);
+                }}
+                style={{
+                  display: "flex", alignItems: "center", gap: "8px",
+                  padding: "8px 10px", borderRadius: "10px", border: "none",
+                  background: cur === localCurrency ? "var(--bg-soft)" : "transparent",
+                  cursor: "pointer", fontSize: "13px", color: "var(--ink)", textAlign: "left"
+                }}
+              >
+                <span>{CURRENCY_META[cur].flag}</span>
+                <span style={{ fontWeight: cur === localCurrency ? 700 : 400 }}>{cur}</span>
+                <span style={{ fontSize: "11px", color: "var(--ink-40)", marginLeft: "auto" }}>{CURRENCY_META[cur].symbol}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </main>
   );
 }
