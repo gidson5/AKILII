@@ -125,115 +125,69 @@ function inlineBold(text: string): React.ReactNode {
 }
 
 async function downloadStatement(content: string, address: string) {
-  const { jsPDF } = await import("jspdf");
-  const date = new Date().toISOString().slice(0, 10);
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
-
-  const pageW = doc.internal.pageSize.getWidth();
-  const margin = 18;
-  const usableW = pageW - margin * 2;
-  let y = 22;
-
-  // Header bar
-  doc.setFillColor(61, 214, 140);
-  doc.rect(0, 0, pageW, 16, "F");
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.setTextColor(255, 255, 255);
-  doc.text("AKILI — AI Financial Copilot", margin, 10.5);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.text("Wallet Statement", pageW - margin, 10.5, { align: "right" });
-
-  // Meta
-  doc.setTextColor(60, 60, 60);
-  doc.setFontSize(8);
-  doc.text(`Wallet: ${address}`, margin, y);
-  y += 5;
-  doc.text(`Network: Celo Mainnet  ·  Generated: ${new Date().toLocaleString("en-US", { dateStyle: "long", timeStyle: "short" })}`, margin, y);
-  y += 2;
-  doc.setDrawColor(200, 200, 200);
-  doc.line(margin, y + 2, pageW - margin, y + 2);
-  y += 7;
-
-  // Body — parse content line by line
-  const lines = content.split("\n");
-  for (const raw of lines) {
-    if (y > 272) { doc.addPage(); y = 20; }
-
-    const line = raw.trimStart();
-
-    if (line.startsWith("### ")) {
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(10);
-      doc.setTextColor(30, 30, 30);
-      doc.text(line.slice(4), margin, y);
-      y += 6;
-    } else if (line.startsWith("- ") || line.startsWith("• ")) {
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor(60, 60, 60);
-      const wrapped = doc.splitTextToSize("• " + line.slice(2).replace(/\*\*/g, ""), usableW - 4);
-      doc.text(wrapped, margin + 2, y);
-      y += wrapped.length * 5;
-    } else if (line === "") {
-      y += 2;
-    } else {
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor(60, 60, 60);
-      const clean = line.replace(/\*\*/g, "");
-      const wrapped = doc.splitTextToSize(clean, usableW);
-      doc.text(wrapped, margin, y);
-      y += wrapped.length * 5;
+  // iOS — generate client-side PDF and use Web Share API with file
+  // Check capability before loading jsPDF so Android skips the heavy import
+  const testBlob = new Blob([""], { type: "application/pdf" });
+  const testFile = new File([testBlob], "test.pdf", { type: "application/pdf" });
+  if (navigator.canShare?.({ files: [testFile] })) {
+    const { jsPDF } = await import("jspdf");
+    const date = new Date().toISOString().slice(0, 10);
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const pageW = doc.internal.pageSize.getWidth();
+    const margin = 18;
+    const usableW = pageW - margin * 2;
+    let y = 22;
+    doc.setFillColor(61, 214, 140);
+    doc.rect(0, 0, pageW, 16, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(255, 255, 255);
+    doc.text("AKILI — AI Financial Copilot", margin, 10.5);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+    doc.text("Wallet Statement", pageW - margin, 10.5, { align: "right" });
+    doc.setTextColor(60, 60, 60); doc.setFontSize(8);
+    doc.text(`Wallet: ${address}`, margin, y); y += 5;
+    doc.text(`Network: Celo Mainnet  ·  Generated: ${new Date().toLocaleString("en-US", { dateStyle: "long", timeStyle: "short" })}`, margin, y);
+    y += 2; doc.setDrawColor(200, 200, 200); doc.line(margin, y + 2, pageW - margin, y + 2); y += 7;
+    for (const raw of content.split("\n")) {
+      if (y > 272) { doc.addPage(); y = 20; }
+      const line = raw.trimStart();
+      if (line.startsWith("### ")) {
+        doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(30, 30, 30);
+        doc.text(line.slice(4), margin, y); y += 6;
+      } else if (line.startsWith("- ") || line.startsWith("• ")) {
+        doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(60, 60, 60);
+        const w = doc.splitTextToSize("• " + line.slice(2).replace(/\*\*/g, ""), usableW - 4);
+        doc.text(w, margin + 2, y); y += (w as string[]).length * 5;
+      } else if (line === "") { y += 2; }
+      else {
+        doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(60, 60, 60);
+        const w = doc.splitTextToSize(line.replace(/\*\*/g, ""), usableW);
+        doc.text(w, margin, y); y += (w as string[]).length * 5;
+      }
     }
-  }
-
-  // Footer on every page
-  const totalPages = (doc.internal as unknown as { getNumberOfPages: () => number }).getNumberOfPages();
-  for (let i = 1; i <= totalPages; i++) {
-    doc.setPage(i);
-    const ph = doc.internal.pageSize.getHeight();
-    doc.setDrawColor(200, 200, 200);
-    doc.line(margin, ph - 12, pageW - margin, ph - 12);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7);
-    doc.setTextColor(150, 150, 150);
-    doc.text("Generated by Akili · akilii-minipay.vercel.app", margin, ph - 7);
-    doc.text(`Page ${i} of ${totalPages}`, pageW - margin, ph - 7, { align: "right" });
-  }
-
-  const filename = `akili-statement-${address.slice(0, 6)}-${date}.pdf`;
-  const dataUri = doc.output("datauristring");
-
-  // iOS — Web Share API with file
-  const blob = doc.output("blob");
-  const file = new File([blob], filename, { type: "application/pdf" });
-  if (navigator.canShare?.({ files: [file] })) {
-    await navigator.share({ files: [file], title: "Akili Wallet Statement" });
+    const totalPages = (doc.internal as unknown as { getNumberOfPages: () => number }).getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i); const ph = doc.internal.pageSize.getHeight();
+      doc.setDrawColor(200, 200, 200); doc.line(margin, ph - 12, pageW - margin, ph - 12);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(150, 150, 150);
+      doc.text("Generated by Akili · akilii-minipay.vercel.app", margin, ph - 7);
+      doc.text(`Page ${i} of ${totalPages}`, pageW - margin, ph - 7, { align: "right" });
+    }
+    const filename = `akili-statement-${address.slice(0, 6)}-${date}.pdf`;
+    const blob = doc.output("blob");
+    await navigator.share({ files: [new File([blob], filename, { type: "application/pdf" })], title: "Akili Wallet Statement" });
     return;
   }
 
-  // Android WebView — open PDF in new tab; user can share/save from browser chrome
-  const newWin = window.open("", "_blank");
-  if (newWin) {
-    newWin.document.write(
-      `<!DOCTYPE html><html><head><title>${filename}</title></head>` +
-      `<body style="margin:0;background:#222">` +
-      `<embed src="${dataUri}" type="application/pdf" width="100%" height="100%" style="height:100vh"/>` +
-      `</body></html>`
-    );
-    newWin.document.close();
-    return;
-  }
-
-  // Desktop fallback — anchor download
-  const a = document.createElement("a");
-  a.href = dataUri;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  // Android + Desktop — server generates PDF, served as real https:// URL
+  // Android WebView honours https:// downloads; blob:/data: URIs are blocked
+  const res = await fetch("/api/statement", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content, address }),
+  });
+  if (!res.ok) throw new Error("Could not prepare download — please try again.");
+  const { id } = await res.json() as { id: string };
+  window.open(`/api/statement?id=${id}`, "_blank");
 }
 
 // ── Charts ────────────────────────────────────────────────────────────────────
