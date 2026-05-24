@@ -7,7 +7,7 @@ const STEPS = [
   {
     icon: "A",
     title: "Meet Akili",
-    body: "Your AI financial copilot for MiniPay. Ask questions about your wallet in plain language.",
+    body: "Your AI financial copilot on Celo. Ask questions about your wallet in plain language — works in MiniPay and any web browser.",
   },
   {
     icon: "📊",
