@@ -326,7 +326,7 @@ export default function HomePage() {
               ))}
             </div>
 
-            <div className="dashboard-hero-home__footer">
+            <div className="dashboard-hero-home__footer dashboard-hero-home__footer--bundle">
               <div className="dashboard-hero-home__range" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 {canAnalyze ? "Wallet connected · ready" : "Wallet required"}
                 <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", fontSize: "9px", fontWeight: 600, padding: "1px 6px", borderRadius: "999px", background: "rgba(61,214,140,0.18)", color: "var(--green)" }}>
@@ -334,15 +334,9 @@ export default function HomePage() {
                   Celo
                 </span>
               </div>
-              <Link
-                href="/copilot"
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: "5px",
-                  fontSize: "12px", fontWeight: 700, color: "var(--slab-ink)",
-                  textDecoration: "none"
-                }}
-              >
-                Open Copilot <ArrowRightIcon />
+              <Link href="/copilot" className="dashboard-primary-link">
+                Open Copilot
+                <ArrowRightIcon />
               </Link>
             </div>
           </article>
