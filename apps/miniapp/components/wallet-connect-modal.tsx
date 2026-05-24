@@ -42,14 +42,18 @@ export function WalletConnectModal({
           <div>Run AI analysis on your real activity</div>
         </div>
 
-        {hasProvider ? (
+        {isMiniPayProvider ? (
+          <div style={{ textAlign: "center", fontSize: "13px", color: "var(--ink-55)", padding: "8px 0" }}>
+            Connecting automatically…
+          </div>
+        ) : hasProvider ? (
           <button
             type="button"
             className="primary-action wallet-modal-card__action"
             onClick={() => { void onConnect(); }}
             disabled={isLoading}
           >
-            {isMiniPayProvider ? "Retry MiniPay" : "Connect wallet"}
+            Connect wallet
           </button>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
