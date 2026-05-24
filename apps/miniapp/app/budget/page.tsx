@@ -944,9 +944,11 @@ export default function BudgetPage() {
                 )}
               </div>
 
-              {periodTxs.length === 0 && (
-                <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--ink-55)", fontSize: "14px" }}>
-                  No transactions in this period.
+              {periodTxs.length === 0 && !loading && (
+                <div style={{ textAlign: "center", padding: "40px 20px" }}>
+                  <div style={{ fontSize: "32px", marginBottom: "10px" }}>📭</div>
+                  <div style={{ color: "var(--ink-55)", fontSize: "14px", fontWeight: 500 }}>No transactions in this period</div>
+                  <div style={{ color: "var(--ink-40)", fontSize: "12px", marginTop: "4px" }}>Try switching to a longer time range</div>
                 </div>
               )}
 
