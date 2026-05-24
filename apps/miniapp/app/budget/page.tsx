@@ -302,16 +302,22 @@ export default function BudgetPage() {
   }, [txList]);
 
   async function downloadCSV() {
-    const header = "Date,Type,Category,Token,Amount,Counterparty,Note";
-    const rows = txList.map(tx => [
-      new Date(tx.timestamp * 1000).toISOString().slice(0, 10),
-      tx.type,
-      tx.category,
-      tx.token,
-      parseFloat(tx.amount).toFixed(6),
-      `"${resolveLabel(tx.counterpartyLabel, contactMap).replace(/"/g, '""')}"`,
-      `"${(allNotes[tx.hash] ?? "").replace(/"/g, '""')}"`,
-    ].join(","));
+    const header = "Date,Time,Type,Category,Token,Amount (USD),Counterparty Address,Counterparty Name,Note,Tx Hash";
+    const rows = txList.map(tx => {
+      const dt = new Date(tx.timestamp * 1000);
+      return [
+        dt.toISOString().slice(0, 10),
+        dt.toISOString().slice(11, 19),
+        tx.type,
+        tx.category,
+        tx.token,
+        parseFloat(tx.amount).toFixed(6),
+        `"${tx.counterparty}"`,
+        `"${resolveLabel(tx.counterpartyLabel, contactMap).replace(/"/g, '""')}"`,
+        `"${(allNotes[tx.hash] ?? "").replace(/"/g, '""')}"`,
+        tx.hash,
+      ].join(",");
+    });
     const csvContent = header + "\n" + rows.join("\n");
     const filename = `akili-${walletAddress!.slice(0, 6)}-${new Date().toISOString().slice(0, 10)}.csv`;
     const blob = new Blob([csvContent], { type: "text/csv" });
