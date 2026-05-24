@@ -618,16 +618,19 @@ function CopilotInner() {
             </div>
           </div>
           {tab === "chat" && messages.length > 1 && (
-            <button
-              type="button"
-              onClick={() => {
-                setMessages([{ id: "welcome", role: "assistant", content: "Hi! I'm Akili, your AI financial assistant. I can analyze your wallet, give spending advice, audit your activity, or generate a formal statement. What would you like to know?", timestamp: new Date() }]);
-                setPaywallPending(null);
-              }}
-              style={{ fontSize: "11px", color: "var(--ink-55)", background: "transparent", padding: "4px 8px", border: "1px solid var(--line)", borderRadius: "8px", cursor: "pointer" }}
-            >
-              Clear
-            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ fontSize: "10px", color: "var(--ink-40)" }}>{messages.length - 1} msg{messages.length - 1 !== 1 ? "s" : ""}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setMessages([{ id: "welcome", role: "assistant", content: "Hi! I'm Akili, your AI financial assistant. I can analyze your wallet, give spending advice, audit your activity, or generate a formal statement. What would you like to know?", timestamp: new Date() }]);
+                  setPaywallPending(null);
+                }}
+                style={{ fontSize: "11px", color: "var(--ink-55)", background: "transparent", padding: "4px 8px", border: "1px solid var(--line)", borderRadius: "8px", cursor: "pointer" }}
+              >
+                Clear
+              </button>
+            </div>
           )}
         </div>
 
