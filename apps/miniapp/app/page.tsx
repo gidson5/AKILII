@@ -429,6 +429,20 @@ export default function HomePage() {
               <small>{canAnalyze ? "Generate any time" : "Connect wallet"}</small>
             </Link>
           </div>
+
+          {canAnalyze && (
+            <Link
+              href="/budget"
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+                padding: "12px", borderRadius: "16px",
+                background: "var(--surface)", border: "1px solid var(--line)",
+                textDecoration: "none", fontSize: "13px", fontWeight: 600, color: "var(--ink-70)"
+              }}
+            >
+              📊 View Spend Sheet →
+            </Link>
+          )}
         </section>
 
         <footer style={{ padding: "4px 16px 4px", textAlign: "center" }}>
