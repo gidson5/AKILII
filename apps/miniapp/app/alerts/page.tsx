@@ -165,7 +165,7 @@ export default function AlertsPage() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--ink)" }}>{ruleDescription(rule)}</div>
                       <div style={{ fontSize: "11px", color: "var(--ink-40)" }}>
-                        {rule.enabled ? "Active — checking on open" : "Disabled"}
+                        {rule.enabled ? "Active — checks each time you open Akili" : "Disabled · tap to enable"}
                       </div>
                     </div>
                     {/* Toggle */}
