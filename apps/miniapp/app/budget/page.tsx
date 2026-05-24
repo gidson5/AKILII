@@ -876,7 +876,10 @@ export default function BudgetPage() {
                               <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                 {contactName}
                               </div>
-                              <div style={{ fontSize: "10px", color: "var(--ink-40)" }}>{formatDate(tx.timestamp)} · {tx.token}</div>
+                              <div style={{ fontSize: "10px", color: "var(--ink-40)" }}>
+                                {formatDate(tx.timestamp)} · {tx.token}
+                                {allNotes[tx.hash] && <span style={{ marginLeft: "4px", color: "var(--green-ink)" }}>· note</span>}
+                              </div>
                             </div>
                             <div style={{ textAlign: "right", flexShrink: 0 }}>
                               <div style={{ fontSize: "13px", fontWeight: 700, color: isOut ? "var(--coral-ink)" : "var(--green-ink)", fontFamily: "var(--font-mono)" }}>
