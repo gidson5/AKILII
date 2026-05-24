@@ -16,21 +16,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Akili — AI Financial Copilot",
+  title: "Akili — AI Financial Copilot on Celo",
   description:
-    "AI-powered financial intelligence for MiniPay users. Analyze spending, audit your wallet, and get a personalized financial health score.",
+    "Your AI financial copilot for MiniPay and the web. Analyze wallet spending, audit activity, set budget alerts, and get a personalized financial health score — all on Celo.",
   manifest: "/manifest.json",
+  keywords: ["MiniPay", "Celo", "DeFi", "AI", "financial copilot", "USDC", "USDT", "wallet analysis"],
   openGraph: {
-    title: "Akili — AI Financial Copilot",
-    description: "AI-powered financial intelligence for MiniPay users on Celo.",
+    title: "Akili — AI Financial Copilot on Celo",
+    description: "AI-powered wallet analysis for MiniPay and web. Spending advice, health scores, and budget alerts.",
     url: "https://akilii-minipay.vercel.app",
     siteName: "Akili",
-    type: "website"
+    type: "website",
+    images: [{ url: "https://akilii-minipay.vercel.app/og.png", width: 1200, height: 630, alt: "Akili AI Financial Copilot" }],
   },
   twitter: {
-    card: "summary",
-    title: "Akili — AI Financial Copilot",
-    description: "AI-powered financial intelligence for MiniPay users on Celo."
+    card: "summary_large_image",
+    title: "Akili — AI Financial Copilot on Celo",
+    description: "AI-powered wallet analysis for MiniPay and web. Spending advice, health scores, and budget alerts.",
+    images: ["https://akilii-minipay.vercel.app/og.png"],
   },
   other: {
     "talentapp:project_verification":
