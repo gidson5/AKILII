@@ -642,7 +642,7 @@ function CopilotInner() {
               Akili
             </div>
             <div style={{ color: "var(--ink-55)", fontSize: "11px" }}>
-              {address.slice(0, 6)}…{address.slice(-4)}
+              Your wallet
             </div>
           </div>
           {tab === "chat" && messages.length > 1 && (
