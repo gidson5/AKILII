@@ -310,7 +310,7 @@ export default function HomePage() {
               </button>
             </div>
 
-            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
+            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
               {[
                 { label: "Spending Advice", action: "spending-advice" },
                 { label: "Wallet Audit", action: "wallet-audit" },
@@ -324,18 +324,6 @@ export default function HomePage() {
                   {item.label}
                 </Link>
               ))}
-              <Link
-                href="/copilot"
-                style={{
-                  marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: "5px",
-                  fontSize: "12px", fontWeight: 700, color: "var(--slab-ink)",
-                  background: "rgba(255,255,255,0.18)", border: "1px solid rgba(255,255,255,0.28)",
-                  borderRadius: "999px", padding: "5px 12px", textDecoration: "none",
-                  whiteSpace: "nowrap"
-                }}
-              >
-                Open Copilot <ArrowRightIcon />
-              </Link>
             </div>
 
             <div className="dashboard-hero-home__footer">
@@ -346,6 +334,16 @@ export default function HomePage() {
                   Celo
                 </span>
               </div>
+              <Link
+                href="/copilot"
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: "5px",
+                  fontSize: "12px", fontWeight: 700, color: "var(--slab-ink)",
+                  textDecoration: "none"
+                }}
+              >
+                Open Copilot <ArrowRightIcon />
+              </Link>
             </div>
           </article>
 
