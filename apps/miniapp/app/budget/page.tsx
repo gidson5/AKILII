@@ -469,6 +469,9 @@ export default function BudgetPage() {
                 className={`segmented-row__item${period === p.value ? " is-active" : ""}`}
               >
                 {p.label}
+                {period === p.value && periodTxs.length > 0 && (
+                  <span style={{ marginLeft: "4px", fontSize: "9px", opacity: 0.7 }}>({periodTxs.length})</span>
+                )}
               </button>
             ))}
           </div>
