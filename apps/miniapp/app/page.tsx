@@ -127,6 +127,7 @@ export default function HomePage() {
   const [fxRates, setFxRates] = useState<FxRates | null>(null);
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
   const [pickerPos, setPickerPos] = useState({ top: 0, left: 0 });
+  const [streak, setStreak] = useState(0);
   const currencyBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -140,6 +141,19 @@ export default function HomePage() {
   useEffect(() => {
     setLocalCurrency(getPreferredCurrency());
     void fetchFxRates().then(setFxRates);
+  }, []);
+
+  useEffect(() => {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const last = localStorage.getItem("akili_last_open");
+      const cur = parseInt(localStorage.getItem("akili_streak") ?? "0", 10);
+      const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+      const next = last === today ? cur : last === yesterday ? cur + 1 : 1;
+      localStorage.setItem("akili_last_open", today);
+      localStorage.setItem("akili_streak", String(next));
+      setStreak(next);
+    } catch { /* ignore */ }
   }, []);
 
   function copyAddress() {
@@ -231,6 +245,15 @@ export default function HomePage() {
                 <span className="dashboard-hero-home__dot" />
                 <span>{addressCopied ? "Copied!" : walletSummary}</span>
               </div>
+              {streak > 1 && (
+                <span style={{
+                  fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.7)",
+                  background: "rgba(255,255,255,0.12)", borderRadius: "20px",
+                  padding: "2px 7px", letterSpacing: "0.02em"
+                }}>
+                  🔥 {streak}d
+                </span>
+              )}
             </div>
 
             {/* Balance + eye icon on one row */}
