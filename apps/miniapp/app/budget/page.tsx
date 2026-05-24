@@ -569,7 +569,14 @@ export default function BudgetPage() {
               {/* Net position */}
               <div style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: "18px", padding: "16px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-                  <span style={{ fontSize: "12px", color: "var(--ink-55)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Net position</span>
+                  <div>
+                    <span style={{ fontSize: "12px", color: "var(--ink-55)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Net position</span>
+                    {wallet && Object.keys(wallet.totalReceived).length > 0 && (
+                      <div style={{ fontSize: "10px", color: "var(--ink-40)", marginTop: "2px" }}>
+                        {Object.entries(wallet.totalReceived).map(([tok]) => tok).join(" · ")}
+                      </div>
+                    )}
+                  </div>
                   <div style={{ textAlign: "right" }}>
                     <span style={{ fontSize: "15px", fontWeight: 700, color: (totalReceived - totalSpent) >= 0 ? "var(--green-ink)" : "var(--coral-ink)", fontFamily: "var(--font-mono)" }}>
                       {(totalReceived - totalSpent) >= 0 ? "+" : ""}${(totalReceived - totalSpent).toFixed(2)}
@@ -578,7 +585,7 @@ export default function BudgetPage() {
                       <div style={{ fontSize: "10px", color: "var(--ink-40)", fontFamily: "var(--font-mono)" }}>≈ {toLocal(Math.abs(totalReceived - totalSpent))}</div>
                     )}
                   </div>
-                </div>
+                </div>  {/* closes flex row */}
                 {(totalReceived + totalSpent) > 0 && (
                   <div style={{ height: "8px", borderRadius: "4px", overflow: "hidden", background: "var(--line)", display: "flex" }}>
                     <div style={{ height: "100%", width: `${(totalReceived / (totalReceived + totalSpent)) * 100}%`, background: "var(--green)", transition: "width 0.6s ease" }} />
