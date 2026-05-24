@@ -356,8 +356,12 @@ export default function AlertsPage() {
 
           {/* Empty state */}
           {rules.length === 0 && !showForm && (
-            <div style={{ textAlign: "center", padding: "20px 20px 0", color: "var(--ink-55)", fontSize: "13px" }}>
-              No rules yet. Add one above to get spending alerts.
+            <div style={{ textAlign: "center", padding: "32px 20px", background: "var(--surface)", border: "1px solid var(--line)", borderRadius: "20px" }}>
+              <div style={{ fontSize: "36px", marginBottom: "10px" }}>🔔</div>
+              <strong style={{ fontSize: "14px", color: "var(--ink)", display: "block", marginBottom: "6px" }}>No alerts yet</strong>
+              <p style={{ fontSize: "12px", color: "var(--ink-55)", margin: "0 auto", maxWidth: "22ch", lineHeight: 1.5 }}>
+                Use the quick presets above or create a custom rule to get notified when your spending hits a limit.
+              </p>
             </div>
           )}
 
