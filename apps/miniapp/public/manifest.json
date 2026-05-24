@@ -1,24 +1,33 @@
 {
   "name": "Akili — AI Financial Copilot",
   "short_name": "Akili",
-  "description": "AI-powered financial intelligence for MiniPay users on Celo",
+  "description": "AI-powered wallet analysis for MiniPay and web. Spending advice, health scores, and budget alerts on Celo.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#F5F0E8",
   "theme_color": "#3DD68C",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
-  "categories": ["finance", "utilities"],
-  "lang": "en"
+  "shortcuts": [
+    { "name": "Open Copilot", "url": "/copilot", "description": "AI chat and insights" },
+    { "name": "Budget", "url": "/budget", "description": "Spend sheet and analysis" },
+    { "name": "Alerts", "url": "/alerts", "description": "Spending alert rules" }
+  ],
+  "categories": ["finance", "utilities", "productivity"],
+  "lang": "en",
+  "dir": "ltr"
 }
