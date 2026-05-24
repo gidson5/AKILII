@@ -369,6 +369,18 @@ function CopilotInner() {
   const [insightsError, setInsightsError] = useState("");
   const [insightsDays, setInsightsDays] = useState(90);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const PLACEHOLDERS = [
+    "Ask about your wallet…",
+    "How much did I spend this month?",
+    "What's my biggest expense?",
+    "Am I saving enough?",
+    "Audit my wallet…",
+  ];
+  const [placeholderIdx, setPlaceholderIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setPlaceholderIdx(i => (i + 1) % PLACEHOLDERS.length), 3500);
+    return () => clearInterval(t);
+  }, []);
 
   useEffect(() => {
     setFreeAudits(getFreeAuditsRemaining());
@@ -877,7 +889,7 @@ function CopilotInner() {
                 value={input}
                 onChange={e => setInput(e.target.value.slice(0, 500))}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); } }}
-                placeholder="Ask about your wallet…"
+                placeholder={PLACEHOLDERS[placeholderIdx]}
                 rows={1}
                 maxLength={500}
                 style={{
