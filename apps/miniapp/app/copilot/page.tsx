@@ -62,6 +62,34 @@ function formatTime(d: Date) {
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
+function AkiliEyes() {
+  return (
+    <div style={{
+      width: "28px", height: "28px", borderRadius: "50%",
+      background: "var(--slab)", flexShrink: 0,
+      display: "flex", alignItems: "center", justifyContent: "center"
+    }}>
+      <svg width="22" height="14" viewBox="0 0 22 14" fill="none" aria-hidden="true">
+        <style>{`
+          @keyframes akili-orbit {
+            0%   { transform: translate(0px, -1.5px); }
+            25%  { transform: translate(1.5px, 0px);  }
+            50%  { transform: translate(0px,  1.5px); }
+            75%  { transform: translate(-1.5px, 0px); }
+            100% { transform: translate(0px, -1.5px); }
+          }
+          .ak-pl { animation: akili-orbit 2s linear infinite; transform-box: fill-box; transform-origin: center; }
+          .ak-pr { animation: akili-orbit 2s linear infinite; transform-box: fill-box; transform-origin: center; }
+        `}</style>
+        <ellipse cx="5"  cy="7" rx="4.5" ry="5.5" fill="white" />
+        <ellipse cx="17" cy="7" rx="4.5" ry="5.5" fill="white" />
+        <circle className="ak-pl" cx="5"  cy="7" r="2.2" fill="#1a1505" />
+        <circle className="ak-pr" cx="17" cy="7" r="2.2" fill="#1a1505" />
+      </svg>
+    </div>
+  );
+}
+
 function renderMarkdown(text: string): React.ReactNode[] {
   const lines = text.split("\n");
   const nodes: React.ReactNode[] = [];
@@ -691,114 +719,127 @@ function CopilotInner() {
           </div>
           <div style={{ flex: 1, overflowY: "auto", padding: "16px", paddingBottom: "160px", display: "flex", flexDirection: "column", gap: "12px" }}>
             {messages.map(msg => (
-              <div key={msg.id} className="message-enter" style={{ display: "flex", flexDirection: "column", alignItems: msg.role === "user" ? "flex-end" : "flex-start" }}>
-                <div style={{
-                  maxWidth: "85%",
-                  padding: "10px 14px",
-                  borderRadius: msg.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                  background: msg.role === "user" ? "var(--ink)" : "var(--surface)",
-                  color: msg.role === "user" ? "#fffdf7" : "var(--ink)",
-                  fontSize: "14px",
-                  lineHeight: "1.55",
-                  wordBreak: "break-word",
-                  border: msg.role === "assistant" ? "1px solid var(--line)" : "none",
-                  boxShadow: msg.role === "assistant" ? "var(--shadow)" : "none"
-                }}>
-                  {msg.role === "assistant" ? renderMarkdown(msg.content) : msg.content}
-                </div>
-
-                {/* Follow-up suggestions for the last assistant message */}
-                {msg.role === "assistant" && msg.id !== "welcome" && msg === messages.filter(m => m.role === "assistant").at(-1) && !chatLoading && (
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "6px", maxWidth: "85%" }}>
-                    {(FOLLOW_UPS[msg.reportType ?? ""] ?? DEFAULT_FOLLOW_UPS).map(s => (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => sendMessage(s)}
-                        style={{
-                          padding: "4px 10px", borderRadius: "999px", fontSize: "11px", cursor: "pointer",
-                          background: "var(--bg-soft)", border: "1px solid var(--line)", color: "var(--ink-70)"
-                        }}
-                      >
-                        {s}
-                      </button>
-                    ))}
+              <div
+                key={msg.id}
+                className="message-enter"
+                style={{
+                  display: "flex",
+                  flexDirection: msg.role === "user" ? "column" : "row",
+                  alignItems: msg.role === "user" ? "flex-end" : "flex-start",
+                  gap: msg.role === "assistant" ? "8px" : 0,
+                }}
+              >
+                {msg.role === "assistant" && <AkiliEyes />}
+                <div style={{ display: "flex", flexDirection: "column", alignItems: msg.role === "user" ? "flex-end" : "flex-start" }}>
+                  <div style={{
+                    maxWidth: msg.role === "user" ? "85%" : "calc(100% - 36px)",
+                    padding: "10px 14px",
+                    borderRadius: msg.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+                    background: msg.role === "user" ? "var(--ink)" : "var(--surface)",
+                    color: msg.role === "user" ? "#fffdf7" : "var(--ink)",
+                    fontSize: "14px",
+                    lineHeight: "1.55",
+                    wordBreak: "break-word",
+                    border: msg.role === "assistant" ? "1px solid var(--line)" : "none",
+                    boxShadow: msg.role === "assistant" ? "var(--shadow)" : "none"
+                  }}>
+                    {msg.role === "assistant" ? renderMarkdown(msg.content) : msg.content}
                   </div>
-                )}
 
-                {/* Share button for all assistant messages */}
-                {msg.role === "assistant" && msg.content.length > 40 && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (navigator.share) {
-                        void navigator.share({ title: "Akili Financial Report", text: msg.content });
-                      } else {
-                        void navigator.clipboard.writeText(msg.content).then(() => {
-                          toast.success("Copied to clipboard");
-                        });
-                      }
-                    }}
-                    style={{
-                      marginTop: "4px", display: "inline-flex", alignItems: "center", gap: "5px",
-                      padding: "4px 10px", borderRadius: "999px", background: "transparent",
-                      border: "1px solid var(--line)", color: "var(--ink-55)",
-                      fontSize: "11px", cursor: "pointer"
-                    }}
-                  >
-                    Share
-                  </button>
-                )}
-
-                {/* Download button for statement reports — free (paid at analysis level) */}
-                {msg.role === "assistant" && msg.reportType === "wallet-statement" && (
-                  <button
-                    type="button"
-                    disabled={payingForId === msg.id}
-                    onClick={async () => {
-                      setPayingForId(msg.id);
-                      try {
-                        await downloadStatement(msg.content, address);
-                        toast.success("Statement ready");
-                      } catch (e) {
-                        toast.error(e instanceof Error ? e.message : "Download failed");
-                      } finally {
-                        setPayingForId(null);
-                      }
-                    }}
-                    style={{
-                      marginTop: "6px",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      padding: "6px 12px",
-                      borderRadius: "999px",
-                      background: "var(--surface)",
-                      border: "1px solid var(--line)",
-                      color: "var(--ink-70)",
-                      fontSize: "12px",
-                      fontWeight: 500,
-                      cursor: payingForId === msg.id ? "not-allowed" : "pointer",
-                      boxShadow: "var(--shadow)",
-                      opacity: payingForId === msg.id ? 0.6 : 1,
-                    }}
-                  >
-                    <DownloadIcon />
-                    {payingForId === msg.id ? "Opening…" : "Download PDF"}
-                  </button>
-                )}
-
-                <div style={{ color: "var(--ink-40)", fontSize: "10px", marginTop: "4px", padding: "0 4px", display: "flex", gap: "6px" }}>
-                  <span>{formatTime(msg.timestamp)}</span>
-                  {msg.role === "assistant" && msg.content.length > 200 && (
-                    <span>· {Math.ceil(msg.content.split(/\s+/).length / 200)} min read</span>
+                  {/* Follow-up suggestions for the last assistant message */}
+                  {msg.role === "assistant" && msg.id !== "welcome" && msg === messages.filter(m => m.role === "assistant").at(-1) && !chatLoading && (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "6px", maxWidth: "85%" }}>
+                      {(FOLLOW_UPS[msg.reportType ?? ""] ?? DEFAULT_FOLLOW_UPS).map(s => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => sendMessage(s)}
+                          style={{
+                            padding: "4px 10px", borderRadius: "999px", fontSize: "11px", cursor: "pointer",
+                            background: "var(--bg-soft)", border: "1px solid var(--line)", color: "var(--ink-70)"
+                          }}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
                   )}
+
+                  {/* Share button for all assistant messages */}
+                  {msg.role === "assistant" && msg.content.length > 40 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (navigator.share) {
+                          void navigator.share({ title: "Akili Financial Report", text: msg.content });
+                        } else {
+                          void navigator.clipboard.writeText(msg.content).then(() => {
+                            toast.success("Copied to clipboard");
+                          });
+                        }
+                      }}
+                      style={{
+                        marginTop: "4px", display: "inline-flex", alignItems: "center", gap: "5px",
+                        padding: "4px 10px", borderRadius: "999px", background: "transparent",
+                        border: "1px solid var(--line)", color: "var(--ink-55)",
+                        fontSize: "11px", cursor: "pointer"
+                      }}
+                    >
+                      Share
+                    </button>
+                  )}
+
+                  {/* Download button for statement reports — free (paid at analysis level) */}
+                  {msg.role === "assistant" && msg.reportType === "wallet-statement" && (
+                    <button
+                      type="button"
+                      disabled={payingForId === msg.id}
+                      onClick={async () => {
+                        setPayingForId(msg.id);
+                        try {
+                          await downloadStatement(msg.content, address);
+                          toast.success("Statement ready");
+                        } catch (e) {
+                          toast.error(e instanceof Error ? e.message : "Download failed");
+                        } finally {
+                          setPayingForId(null);
+                        }
+                      }}
+                      style={{
+                        marginTop: "6px",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "6px 12px",
+                        borderRadius: "999px",
+                        background: "var(--surface)",
+                        border: "1px solid var(--line)",
+                        color: "var(--ink-70)",
+                        fontSize: "12px",
+                        fontWeight: 500,
+                        cursor: payingForId === msg.id ? "not-allowed" : "pointer",
+                        boxShadow: "var(--shadow)",
+                        opacity: payingForId === msg.id ? 0.6 : 1,
+                      }}
+                    >
+                      <DownloadIcon />
+                      {payingForId === msg.id ? "Opening…" : "Download PDF"}
+                    </button>
+                  )}
+
+                  <div style={{ color: "var(--ink-40)", fontSize: "10px", marginTop: "4px", padding: "0 4px", display: "flex", gap: "6px" }}>
+                    <span>{formatTime(msg.timestamp)}</span>
+                    {msg.role === "assistant" && msg.content.length > 200 && (
+                      <span>· {Math.ceil(msg.content.split(/\s+/).length / 200)} min read</span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
 
             {chatLoading && (
-              <div style={{ display: "flex" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+                <AkiliEyes />
                 <div style={{
                   background: "var(--surface)",
                   border: "1px solid var(--line)",
@@ -821,12 +862,7 @@ function CopilotInner() {
             {/* Paywall prompt */}
             {paywallPending && !chatLoading && (
               <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
-                <span style={{
-                  width: "28px", height: "28px", borderRadius: "50%", flexShrink: 0,
-                  background: "var(--slab)", color: "var(--slab-ink)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontWeight: 700, fontSize: "12px"
-                }}>A</span>
+                <AkiliEyes />
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxWidth: "80%" }}>
                   <div style={{
                     background: "var(--surface)", border: "1px solid var(--line)",
