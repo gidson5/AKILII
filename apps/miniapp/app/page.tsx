@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BottomNav } from "../components/bottom-nav";
-import { CurrencyConverter } from "../components/currency-converter";
 import { SpendingAlertModal } from "../components/spending-alert-modal";
 import { WalletConnectModal } from "../components/wallet-connect-modal";
 import { useMiniPay } from "../hooks/use-minipay";
@@ -364,7 +363,26 @@ export default function HomePage() {
             ))}
           </div>
 
-          <CurrencyConverter />
+          <Link href="/budget" style={{ textDecoration: "none" }}>
+            <div style={{
+              background: "var(--surface)", border: "1px solid var(--line)",
+              borderRadius: "18px", padding: "14px 16px",
+              display: "flex", alignItems: "center", gap: "14px"
+            }}>
+              <div style={{
+                width: "40px", height: "40px", borderRadius: "14px", flexShrink: 0,
+                background: "var(--slab)", display: "flex", alignItems: "center",
+                justifyContent: "center", fontSize: "20px"
+              }}>🧾</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--ink)" }}>Payment Receipts</div>
+                <div style={{ fontSize: "11px", color: "var(--ink-55)", marginTop: "2px" }}>
+                  Tap any transaction on Spend Sheet to share a receipt
+                </div>
+              </div>
+              <span style={{ fontSize: "14px", color: "var(--ink-40)", flexShrink: 0 }}>→</span>
+            </div>
+          </Link>
 
           {miniPay.walletAddress && !balancesLoading && positiveBalances.length === 0 ? (
             <div className="wallet-empty-card">
