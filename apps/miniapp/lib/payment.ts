@@ -3,6 +3,7 @@
 import { encodeFunctionData, parseUnits } from "viem";
 
 const USDC_ADDRESS = "0xcebA9300f2b948710d2653dD7B07f33A8B32118C" as `0x${string}`;
+const USDT_ADDRESS = "0x617f3112bf5397D0467D315cC709EF968D9ba546" as `0x${string}`;
 
 export const FREE_LIMIT = 3;
 export const AI_PRICE_USDC = parseUnits("0.002", 6);
@@ -126,7 +127,7 @@ export async function payForTrail(): Promise<string> {
     method: "eth_sendTransaction",
     params: [{
       from: accounts[0],
-      to: USDC_ADDRESS,
+      to: USDT_ADDRESS,
       data,
       value: "0x0",
     }],
