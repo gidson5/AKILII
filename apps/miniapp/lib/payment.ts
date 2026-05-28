@@ -17,6 +17,16 @@ export const TRAIL_FREE_LIMIT = 1;
 export const TRAIL_PRICE_USDC = parseUnits("0.01", 6);
 export const TRAIL_PRICE_DISPLAY = "$0.01";
 
+const BALANCE_OF_ABI = [
+  {
+    name: "balanceOf",
+    type: "function",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+  },
+] as const;
+
 const TRANSFER_ABI = [
   {
     name: "transfer",
@@ -117,6 +127,22 @@ export async function payForTrail(): Promise<string> {
   const accounts = await ethereum.request({ method: "eth_accounts" }) as string[];
   if (!accounts?.[0]) throw new Error("Wallet not connected.");
 
+  // Prefer USDT; fall back to USDC if balance is insufficient
+  const balanceData = encodeFunctionData({
+    abi: BALANCE_OF_ABI,
+    functionName: "balanceOf",
+    args: [accounts[0] as `0x${string}`],
+  });
+
+  let tokenAddress = USDC_ADDRESS;
+  try {
+    const hex = await ethereum.request({
+      method: "eth_call",
+      params: [{ to: USDT_ADDRESS, data: balanceData }, "latest"],
+    }) as string;
+    if (BigInt(hex) >= TRAIL_PRICE_USDC) tokenAddress = USDT_ADDRESS;
+  } catch { /* fall back to USDC */ }
+
   const data = encodeFunctionData({
     abi: TRANSFER_ABI,
     functionName: "transfer",
@@ -127,7 +153,7 @@ export async function payForTrail(): Promise<string> {
     method: "eth_sendTransaction",
     params: [{
       from: accounts[0],
-      to: USDT_ADDRESS,
+      to: tokenAddress,
       data,
       value: "0x0",
     }],
