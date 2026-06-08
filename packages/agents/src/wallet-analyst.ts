@@ -38,7 +38,8 @@ export type ReportType =
   | "wallet-audit"
   | "wallet-statement"
   | "monthly-plan"
-  | "financial-health";
+  | "financial-health"
+  | "remittance-analysis";
 
 export type WalletAnalysis = {
   reportType: ReportType;
@@ -214,7 +215,14 @@ CONTEXT:
 - "MiniPay Boost" is MiniPay's built-in savings feature that pays daily interest — transactions from it are interest income, not spending.
 - Amounts labeled "received" include both peer transfers and interest earned.
 - Be direct, warm, and specific. Mention actual dollar amounts from the data.
-- Always be encouraging but honest about spending patterns.`;
+- Always be encouraging but honest about spending patterns.
+
+FX & REMITTANCE CONTEXT:
+- Sending USDT/USDC on Celo costs less than $0.01 in gas — effectively free compared to any traditional service.
+- Western Union charges 3–7% (typically ~5%). Bank wires charge 2–5% plus fixed fees. M-Pesa corridors vary 1–4%.
+- When users ask "how much does it cost to send money to Kenya/Nigeria/Ghana?", always highlight that MiniPay's crypto rail is the cheapest option available.
+- The recipient can cash out USDT via MiniPay, a local Celo exchange, or peer-to-peer.
+- FX rate timing matters: when NGN/KES/GHS is strong relative to USD, the recipient gets more local currency per dollar sent.`;
 
 const PROMPTS: Record<ReportType, (wallet: WalletSummary) => string> = {
   "spending-advice": (w) =>
@@ -318,7 +326,31 @@ Format:
 
 ### Top 2 Improvements
 - improvement 1
-- improvement 2`
+- improvement 2`,
+
+  "remittance-analysis": (w) =>
+    `Identify likely remittance transactions and calculate their true cost vs traditional services.
+
+A "remittance" is an outbound transfer (type=sent) to a recurring counterparty (same address appearing 2+ times) OR a large single outbound transfer likely sent to family abroad.
+
+Format:
+### Remittance Activity — Last ${w.periodDays} Days
+One sentence summary: how many transfers, to how many unique destinations, total sent.
+
+### True Cost Breakdown
+- **Crypto gas fees paid:** $X.XX total — this is the entire on-chain cost
+- **What Western Union would charge (5%):** $X.XX
+- **What a bank wire would charge (3%):** $X.XX
+- **Your savings using MiniPay:** $X.XX vs WU, $X.XX vs bank
+
+### Top Destinations
+List up to 3 counterparties by total sent: label — $X.XX (N transactions)
+
+### Route Advisory
+One paragraph: explain that sending USDT on Celo costs <$0.01 gas per transaction, the recipient can cash out via MiniPay or a local exchange, and this is cheaper than any traditional remittance corridor. Mention that timing matters — local currency rates fluctuate, so sending when your preferred currency (NGN/KES/GHS) is strong means the recipient gets more.
+
+### Bottom Line
+One specific, actionable recommendation based on their actual data.`
 };
 
 export async function generateWalletReport(

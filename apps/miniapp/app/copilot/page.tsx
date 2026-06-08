@@ -42,11 +42,12 @@ type InsightsData = {
 };
 
 const FOLLOW_UPS: Record<string, string[]> = {
-  "spending-advice":  ["What's my biggest expense?", "How can I save more?", "Compare my spending to last month"],
-  "wallet-audit":     ["What's my health score mean?", "How do I improve my score?", "Show my top payees"],
-  "account-summary":  ["Break down by category", "What were my biggest sends?", "Generate a statement"],
-  "monthly-plan":     ["How much should I save?", "What's my daily budget?", "Set a spending alert"],
-  "wallet-statement": ["Audit my wallet", "Give spending advice", "What's my balance trend?"],
+  "spending-advice":      ["What's my biggest expense?", "How can I save more?", "Compare my spending to last month"],
+  "wallet-audit":         ["What's my health score mean?", "How do I improve my score?", "Show my top payees"],
+  "account-summary":      ["Break down by category", "What were my biggest sends?", "Generate a statement"],
+  "monthly-plan":         ["How much should I save?", "What's my daily budget?", "Set a spending alert"],
+  "wallet-statement":     ["Audit my wallet", "Give spending advice", "What's my balance trend?"],
+  "remittance-analysis":  ["How much could I save vs Western Union?", "When's the best time to send money?", "Show my top recipients"],
 };
 const DEFAULT_FOLLOW_UPS = ["Tell me more", "Give me advice", "Summarize this"];
 
@@ -56,6 +57,7 @@ const QUICK_ACTIONS: QuickAction[] = [
   { label: "Wallet Audit", reportType: "wallet-audit", prompt: "Audit my wallet and give me a financial health score." },
   { label: "Monthly Plan", reportType: "monthly-plan", prompt: "Build a realistic monthly budget and savings plan based on my transaction history." },
   { label: "Statement", reportType: "wallet-statement", prompt: "Generate a formal wallet statement of my transactions." },
+  { label: "Remittance Cost", reportType: "remittance-analysis", prompt: "Analyze my cross-border sends and show me what they actually cost vs traditional remittance services." },
 ];
 
 function formatTime(d: Date) {

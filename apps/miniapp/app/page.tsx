@@ -384,6 +384,35 @@ export default function HomePage() {
             </div>
           </Link>
 
+          <Link href="/fx" style={{ textDecoration: "none" }}>
+            <div style={{
+              background: "var(--surface)", border: "1px solid var(--line)",
+              borderRadius: "18px", padding: "14px 16px",
+              display: "flex", alignItems: "center", gap: "14px"
+            }}>
+              <div style={{
+                width: "40px", height: "40px", borderRadius: "14px", flexShrink: 0,
+                background: "var(--slab)", display: "flex", alignItems: "center",
+                justifyContent: "center", fontSize: "20px"
+              }}>💱</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--ink)" }}>FX Rates & Alerts</div>
+                <div style={{ fontSize: "11px", color: "var(--ink-55)", marginTop: "2px" }}>
+                  Live NGN · KES · GHS · ZAR rates, alerts &amp; send route advisory
+                </div>
+              </div>
+              {fxRates && localCurrency !== "USD" && (
+                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                  <div style={{ fontSize: "12px", fontWeight: 700, fontFamily: "var(--font-mono)", color: "var(--ink)" }}>
+                    {Math.round(fxRates.rates[localCurrency] ?? 0).toLocaleString()}
+                  </div>
+                  <div style={{ fontSize: "10px", color: "var(--ink-40)" }}>{localCurrency}/USD</div>
+                </div>
+              )}
+              <span style={{ fontSize: "14px", color: "var(--ink-40)", flexShrink: 0 }}>→</span>
+            </div>
+          </Link>
+
           {miniPay.walletAddress && !balancesLoading && positiveBalances.length === 0 ? (
             <div className="wallet-empty-card">
               <strong>No stable balances found.</strong>
