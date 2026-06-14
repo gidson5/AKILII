@@ -37,6 +37,7 @@ export function removeFxAlert(id: string): void {
   save(getFxAlerts().filter(a => a.id !== id));
 }
 
+/** Toggles the enabled state of an FX alert by id. */
 export function toggleFxAlert(id: string): void {
   save(getFxAlerts().map(a => a.id === id ? { ...a, enabled: !a.enabled } : a));
 }
