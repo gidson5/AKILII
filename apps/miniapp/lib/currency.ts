@@ -51,6 +51,10 @@ function setCachedRates(data: FxRates): void {
   try { localStorage.setItem(RATES_KEY, JSON.stringify(data)); } catch { /* ignore */ }
 }
 
+/**
+ * Fetches live USD FX rates from open.er-api.com with a 1-hour localStorage cache.
+ * Falls back to static FALLBACK_RATES if the network request fails.
+ */
 export async function fetchFxRates(): Promise<FxRates> {
   const cached = getCachedRates();
   if (cached) return cached;
