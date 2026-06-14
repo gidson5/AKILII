@@ -25,6 +25,7 @@ function save(alerts: FxAlert[]): void {
   try { localStorage.setItem(KEY, JSON.stringify(alerts)); } catch { /* ignore */ }
 }
 
+/** Creates a new FX rate alert, persists it, and returns the saved record. */
 export function addFxAlert(data: Omit<FxAlert, "id" | "createdAt">): FxAlert {
   const alert: FxAlert = { ...data, id: `${Date.now()}`, createdAt: new Date().toISOString() };
   save([...getFxAlerts(), alert]);
