@@ -19,6 +19,7 @@ export type FxRates = {
   fetchedAt: string;
 };
 
+// Approximate rates used when open.er-api.com is unreachable. Updated June 2026.
 const FALLBACK_RATES: Record<string, number> = {
   NGN: 1620, KES: 129, GHS: 15.4, ZAR: 18.2, USD: 1,
 };
