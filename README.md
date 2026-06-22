@@ -1,6 +1,6 @@
 # Akili — AI Financial Intelligence for MiniPay
 
-> *Akili* is the Swahili word for intelligence and wisdom.
+> *Akili* is the Swahili word for intelligence and wisdom. Live at **[akilii.xyz](https://akilii.xyz)**.
 
 Akili is an AI-powered financial copilot built for MiniPay users across Africa. It connects directly to your Celo wallet, reads your on-chain transaction history, and gives you clear, honest, actionable insights about your money — in plain language, no jargon, no spreadsheets required.
 
@@ -98,7 +98,7 @@ This is the correct architecture for autonomous financial agents: the agent acts
 Akili is registered as a verifiable on-chain agent via the **ERC-8004** identity registry on Celo mainnet:
 
 - **Registry:** `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`
-- **Agent URI:** `https://akili.app/agent.json`
+- **Agent URI:** `https://akilii.xyz/agent.json`
 - **Registration tx:** [`0xda007d57...`](https://celoscan.io/tx/0xda007d57e9c8f7ac65cc49e86175ea363ac42f2a8df30fb5c57cabe599c96d7a)
 
 This gives Akili a cryptographically verifiable identity on-chain — other protocols, wallets, and agent frameworks can discover and verify Akili's capabilities without trusting a centralised registry.
@@ -201,7 +201,7 @@ AGENT_PAYMENT_RECIPIENT=0x...   # wallet to receive 0.01 USDC per analysis
 
 # For contract deployment / ERC-8004 re-registration
 DEPLOYER_PRIVATE_KEY=...        # without 0x prefix
-AGENT_URI=https://your-domain/agent.json
+AGENT_URI=https://akilii.xyz/agent.json
 ```
 
 ### Run locally
