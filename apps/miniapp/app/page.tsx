@@ -71,6 +71,10 @@ function renderMarkdown(text: string): React.ReactNode[] {
   for (const line of lines) {
     const k = key++;
     const trimmed = line.trimStart();
+    if (trimmed.startsWith("#### ")) {
+      nodes.push(<div key={k} style={{ fontWeight: 700, fontSize: "12px", color: "var(--ink)", marginTop: "8px", marginBottom: "2px", letterSpacing: "-0.01em" }}>{trimmed.slice(5)}</div>);
+      continue;
+    }
     if (trimmed.startsWith("### ")) {
       nodes.push(<div key={k} style={{ fontWeight: 700, fontSize: "13px", color: "var(--ink)", marginTop: "10px", marginBottom: "2px", letterSpacing: "-0.01em" }}>{trimmed.slice(4)}</div>);
       continue;
@@ -86,7 +90,7 @@ function renderMarkdown(text: string): React.ReactNode[] {
         continue;
       }
     }
-    if (trimmed === "") { nodes.push(<div key={k} style={{ height: "4px" }} />); continue; }
+    if (trimmed === "" || trimmed === "---" || trimmed === "***") { nodes.push(<div key={k} style={{ height: "6px" }} />); continue; }
     nodes.push(<div key={k} style={{ marginTop: "2px" }}>{inlineBold(line)}</div>);
   }
   return nodes;
