@@ -35,7 +35,7 @@ const GD_MESSAGES = [
 ];
 
 function randomMessage(): string {
-  return GD_MESSAGES[Math.floor(Math.random() * GD_MESSAGES.length)];
+  return GD_MESSAGES[Math.floor(Math.random() * GD_MESSAGES.length)] ?? GD_MESSAGES[0]!
 }
 
 export async function GET(req: Request) {
