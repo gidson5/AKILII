@@ -39,7 +39,9 @@ export type ReportType =
   | "wallet-statement"
   | "monthly-plan"
   | "financial-health"
-  | "remittance-analysis";
+  | "remittance-analysis"
+  | "gd-ubi-history"
+  | "gd-ubi-optimize";
 
 export type WalletAnalysis = {
   reportType: ReportType;
@@ -217,6 +219,12 @@ CONTEXT:
 - Be direct, warm, and specific. Mention actual dollar amounts from the data.
 - Always be encouraging but honest about spending patterns.
 
+GOODDOLLAR CONTEXT:
+- G$ (GoodDollar) is a UBI token on Celo. Verified members receive a small G$ allocation daily for free.
+- G$ has 2 decimal places. Transactions from 0x43d72ff17701b2da814620735c39c620ce0ea4a1 are UBI income — never classify these as spending.
+- Idle G$ = uncollected potential. Flag it like uncollected interest. Always mention G$ value in local currency when relevant.
+- G$ is NOT a stablecoin. Its USD value fluctuates based on the GoodDollar reserve ratio.
+
 FX & REMITTANCE CONTEXT:
 - Sending USDT/USDC on Celo costs less than $0.01 in gas — effectively free compared to any traditional service.
 - Western Union charges 3–7% (typically ~5%). Bank wires charge 2–5% plus fixed fees. M-Pesa corridors vary 1–4%.
@@ -327,6 +335,47 @@ Format:
 ### Top 2 Improvements
 - improvement 1
 - improvement 2`,
+
+  "gd-ubi-history": (_w) =>
+    `Analyze this wallet's GoodDollar UBI activity. The wallet data includes G$ token transactions — look for received amounts from the GoodDollar UBI contract (0x43d72ff17701b2da814620735c39c620ce0ea4a1).
+
+Format:
+### GoodDollar UBI Summary
+**Total G$ Received:** X.XX G$ (from UBI claims in the period)
+**Estimated USD Value:** ~$X.XX (at current G$ price)
+**Claim Activity:** X claims detected in the last N days
+
+### Claim Pattern
+- Active days vs total days in period
+- Any gaps or missed claim streaks you can infer from transaction dates
+- Whether the user appears to claim daily or sporadically
+
+### G$ Usage
+- How much G$ was sent vs held vs converted
+- Notable G$ activity (large sends, conversions via Mento, etc.)
+
+### What You're Leaving On The Table
+One specific, honest line about unclaimed or idle G$ value.
+
+### Bottom Line
+One sentence: is this wallet making good use of their GoodDollar UBI?`,
+
+  "gd-ubi-optimize": (_w) =>
+    `Give personalized advice on how this wallet can get more value from GoodDollar UBI. Look at their G$ transaction history and current balance.
+
+Format:
+### Your G$ Snapshot
+**Current G$ Balance:** X.XX G$ (~$X.XX USD)
+**UBI Received This Period:** X.XX G$
+**Claim Frequency:** daily / occasional / rare (infer from data)
+
+### 3 Ways To Get More From Your G$
+- **Action 1** — specific to their data (e.g. "You've missed ~X claims this month. Set a daily reminder to claim — that's $X.XX you're leaving behind.")
+- **Action 2** — specific to their data
+- **Action 3** — specific to their data
+
+### This Week's Priority
+One clear, specific action with an estimated dollar impact.`,
 
   "remittance-analysis": (w) =>
     `Identify likely remittance transactions and calculate their true cost vs traditional services.

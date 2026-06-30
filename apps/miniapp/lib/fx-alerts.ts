@@ -42,6 +42,7 @@ export function toggleFxAlert(id: string): void {
   save(getFxAlerts().map(a => a.id === id ? { ...a, enabled: !a.enabled } : a));
 }
 
+/** Returns alerts whose target rate has been crossed by the current rates. */
 export function checkTriggeredFxAlerts(rates: Record<string, number>): FxAlert[] {
   return getFxAlerts().filter(a => {
     if (!a.enabled) return false;
@@ -49,4 +50,33 @@ export function checkTriggeredFxAlerts(rates: Record<string, number>): FxAlert[]
     if (!rate) return false;
     return a.direction === "above" ? rate >= a.targetRate : rate <= a.targetRate;
   });
+}
+
+// ── G$ claim alert ────────────────────────────────────────────────────────────
+
+const GD_ALERT_KEY = "akili_gd_claim_alert_v1";
+
+type GDClaimAlertState = {
+  dismissedAt: string | null;  // ISO timestamp of last dismissal
+};
+
+function getGDAlertState(): GDClaimAlertState {
+  try { return JSON.parse(localStorage.getItem(GD_ALERT_KEY) ?? "{}") as GDClaimAlertState; }
+  catch { return { dismissedAt: null }; }
+}
+
+/** Returns true if the G$ claim banner should be shown (not dismissed today). */
+export function shouldShowGDClaimAlert(): boolean {
+  const state = getGDAlertState();
+  if (!state.dismissedAt) return true;
+  const dismissedDay = state.dismissedAt.slice(0, 10);
+  const today = new Date().toISOString().slice(0, 10);
+  return dismissedDay !== today;
+}
+
+/** Dismiss the G$ claim banner for today. */
+export function dismissGDClaimAlert(): void {
+  try {
+    localStorage.setItem(GD_ALERT_KEY, JSON.stringify({ dismissedAt: new Date().toISOString() }));
+  } catch { /* ignore */ }
 }

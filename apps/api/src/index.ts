@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
 import { readServerEnv } from "@yield-copilot/shared";
 import { handleExecutionPlan } from "./routes/execution-plan";
+import { handleGDClaims, handleGDProtocol, handleGDReport, handleGDStatus } from "./routes/gd-analysis";
 import { handlePositions } from "./routes/positions";
 import { handleRecommend } from "./routes/recommend";
 import { handleVenues } from "./routes/venues";
@@ -56,6 +57,29 @@ createServer(async (request, response) => {
     if (request.method === "GET" && url.pathname.startsWith("/positions/")) {
       const address = url.pathname.split("/").at(-1) ?? "";
       return sendJson(response, 200, handlePositions(address, query));
+    }
+
+    // GoodDollar routes
+    if (request.method === "GET" && url.pathname.startsWith("/gd/status/")) {
+      const address = url.pathname.split("/").at(-1) ?? "";
+      return sendJson(response, 200, await handleGDStatus(address));
+    }
+
+    if (request.method === "GET" && url.pathname.startsWith("/gd/claims/")) {
+      const address = url.pathname.split("/").at(-1) ?? "";
+      return sendJson(response, 200, await handleGDClaims(address, query));
+    }
+
+    if (request.method === "GET" && url.pathname === "/gd/protocol") {
+      return sendJson(response, 200, await handleGDProtocol());
+    }
+
+    if (request.method === "POST" && url.pathname === "/gd/report") {
+      const ip =
+        (request.headers["x-forwarded-for"] as string | undefined)?.split(",")[0]?.trim()
+        ?? request.socket.remoteAddress
+        ?? "unknown";
+      return sendJson(response, 200, await handleGDReport(await readBody(request), ip));
     }
 
     return sendJson(response, 404, { error: "Not found" });

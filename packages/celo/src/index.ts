@@ -1,5 +1,6 @@
 export * from "./addresses";
 export * from "./chains";
+export * from "./gooddollar";
 export * from "./minipay";
 export * from "./policy-router";
 export * from "./tokens";

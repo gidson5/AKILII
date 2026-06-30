@@ -6,7 +6,8 @@ const KNOWN_TOKENS: Record<string, string> = {
   "0x617f3112bf5397d0467d315cc709ef968d9ba546": "USDT",
   "0x765de816845861e75a25fca122bb6898b8b1282a": "cUSD",
   "0xd8763cba276a3738e6de85b4b3bf5fded6d6ca73": "cEUR",
-  "0xe8537a3d056da446677b9e9d6c5db704eaab4787": "cREAL"
+  "0xe8537a3d056da446677b9e9d6c5db704eaab4787": "cREAL",
+  "0x62b8b11039fcfe5ab0c56e502b1c372a3d2a9c7a": "G$"
 };
 
 // Label any recognised protocol address
@@ -21,6 +22,10 @@ const KNOWN_CONTRACTS: Record<string, string> = {
   "0x00be914168be31c5b5b314f0c3be5a28b9e00000": "Ubeswap",
   // Celo staking / lock gold
   "0x6cc083aed9e3ebe302a6336dbe7ef19d51a63156": "Celo Staking",
+  // GoodDollar protocol
+  "0x43d72ff17701b2da814620735c39c620ce0ea4a1": "GoodDollar UBI",
+  "0xc361a6e67822a0edc17d899227dd9fc50bd62f42": "GoodDollar Identity",
+  "0x94a3240f484a04f5e3d524f528d02694c109463b": "GoodDollar Reserve",
 };
 
 export type CeloTransaction = {

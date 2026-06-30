@@ -16,6 +16,9 @@ type SidebarProps = {
   walletAddress: string | undefined;
   walletSummary: string;
   onNewChat: () => void;
+  gdBalance?: string;
+  gdEntitlement?: string;
+  isGDVerified?: boolean;
 };
 
 // ── Token logos ───────────────────────────────────────────────────────────────
@@ -33,6 +36,13 @@ function TokenLogo({ symbol }: { symbol: string }) {
       <svg width="18" height="18" viewBox="0 0 32 32" fill="none" aria-hidden="true">
         <circle cx="16" cy="16" r="16" fill="#26A17B" />
         <text x="16" y="21" textAnchor="middle" fill="white" fontSize="15" fontWeight="700" fontFamily="Arial,sans-serif">₮</text>
+      </svg>
+    );
+  if (symbol === "G$")
+    return (
+      <svg width="18" height="18" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <circle cx="16" cy="16" r="16" fill="#00AEFF" />
+        <text x="16" y="21" textAnchor="middle" fill="white" fontSize="11" fontWeight="700" fontFamily="Arial,sans-serif">G$</text>
       </svg>
     );
   return <span style={{ width: 18, height: 18, borderRadius: "50%", background: "var(--ink-40)", display: "inline-block" }} />;
@@ -116,8 +126,13 @@ export function Sidebar({
   walletAddress,
   walletSummary,
   onNewChat,
+  gdBalance,
+  gdEntitlement,
+  isGDVerified,
 }: SidebarProps) {
   const positiveBalances = balances.filter((b) => b.hasBalance);
+  const hasGD = gdBalance && parseFloat(gdBalance) > 0;
+  const hasUnclaimed = gdEntitlement && parseFloat(gdEntitlement) > 0;
 
   return (
     <>
@@ -187,7 +202,33 @@ export function Sidebar({
               ))}
             </div>
           )}
-          {walletAddress && positiveBalances.length === 0 && (
+          {/* G$ balance row */}
+          {walletAddress && (hasGD || isGDVerified) && (
+            <div style={{ marginTop: positiveBalances.length > 0 ? "6px" : 0, display: "flex", flexDirection: "column", gap: "4px" }}>
+              <div style={{
+                display: "flex", alignItems: "center", gap: "8px",
+                padding: "6px 8px", borderRadius: "10px", background: "rgba(0,174,255,0.08)",
+                border: "1px solid rgba(0,174,255,0.18)",
+              }}>
+                <TokenLogo symbol="G$" />
+                <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--ink)" }}>G$</span>
+                {isGDVerified && (
+                  <span style={{ fontSize: "9px", background: "rgba(0,174,255,0.15)", color: "#0090cc", borderRadius: "4px", padding: "1px 5px", fontWeight: 600 }}>
+                    Verified
+                  </span>
+                )}
+                <span style={{ marginLeft: "auto", fontSize: "12px", fontFamily: "var(--font-mono)", color: "var(--ink-70)" }}>
+                  {gdBalance ?? "0.00"}
+                </span>
+              </div>
+              {hasUnclaimed && (
+                <div style={{ fontSize: "10px", color: "#0090cc", paddingLeft: "8px" }}>
+                  +{gdEntitlement} G$ unclaimed today
+                </div>
+              )}
+            </div>
+          )}
+          {walletAddress && positiveBalances.length === 0 && !hasGD && !isGDVerified && (
             <p style={{ fontSize: "11px", color: "var(--ink-40)", margin: 0 }}>No stable balances yet</p>
           )}
         </div>

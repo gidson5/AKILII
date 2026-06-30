@@ -8,7 +8,9 @@ import { WalletConnectModal } from "../components/wallet-connect-modal";
 import { toast } from "../components/toast";
 import { haptic } from "../lib/haptics";
 import { useMiniPay } from "../hooks/use-minipay";
+import { useGDStatus } from "../hooks/use-gd-status";
 import { useStableTokenBalances } from "../hooks/use-stable-token-balances";
+import { shouldShowGDClaimAlert, dismissGDClaimAlert } from "../lib/fx-alerts";
 import {
   AI_PRICE_DISPLAY,
   FREE_LIMIT,
@@ -32,15 +34,19 @@ type Message = {
 type QuickAction = { label: string; reportType: string; prompt: string };
 
 const QUICK_ACTIONS: QuickAction[] = [
+  { label: "My G$ UBI",       reportType: "gd-ubi-history",  prompt: "Show me my GoodDollar UBI claim history and how much I've earned." },
+  { label: "G$ Optimizer",    reportType: "gd-ubi-optimize", prompt: "How can I get more value from my GoodDollar UBI?" },
   { label: "Spending Advice", reportType: "spending-advice", prompt: "Give me personalized spending advice based on my wallet activity." },
   { label: "Account Summary", reportType: "account-summary", prompt: "Summarize my account activity for the last 90 days." },
-  { label: "Wallet Audit", reportType: "wallet-audit", prompt: "Audit my wallet and give me a financial health score." },
-  { label: "Monthly Plan", reportType: "monthly-plan", prompt: "Build a realistic monthly budget and savings plan based on my transaction history." },
-  { label: "Statement", reportType: "wallet-statement", prompt: "Generate a formal wallet statement of my transactions." },
+  { label: "Wallet Audit",    reportType: "wallet-audit",    prompt: "Audit my wallet and give me a financial health score." },
+  { label: "Monthly Plan",    reportType: "monthly-plan",    prompt: "Build a realistic monthly budget and savings plan based on my transaction history." },
+  { label: "Statement",       reportType: "wallet-statement", prompt: "Generate a formal wallet statement of my transactions." },
   { label: "Remittance Cost", reportType: "remittance-analysis", prompt: "Analyze my cross-border sends and show me what they actually cost vs traditional remittance services." },
 ];
 
 const FOLLOW_UPS: Record<string, string[]> = {
+  "gd-ubi-history":  ["How much G$ did I miss?", "What's my claim streak?", "How do I optimize my G$?"],
+  "gd-ubi-optimize": ["Show my claim history", "What's 30 days of G$ worth?", "How do I claim G$?"],
   "spending-advice": ["What's my biggest expense?", "How can I save more?", "Compare my spending to last month"],
   "wallet-audit": ["What's my health score mean?", "How do I improve my score?", "Show my top payees"],
   "account-summary": ["Break down by category", "What were my biggest sends?", "Generate a statement"],
@@ -219,12 +225,19 @@ function HomeInner() {
   const router = useRouter();
   const miniPay = useMiniPay();
   const { balances } = useStableTokenBalances(miniPay.walletAddress);
+  const gd = useGDStatus(miniPay.walletAddress);
   const searchParams = useSearchParams();
   const actionParam = searchParams.get("action");
   const autoTriggered = useRef(false);
 
   // Sidebar
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // G$ claim banner
+  const [gdBannerVisible, setGDBannerVisible] = useState(false);
+  useEffect(() => {
+    if (gd.hasUnclaimed && shouldShowGDClaimAlert()) setGDBannerVisible(true);
+  }, [gd.hasUnclaimed]);
 
   // Wallet
   const [hasTriedAutoConnect, setHasTriedAutoConnect] = useState(false);
@@ -394,6 +407,9 @@ function HomeInner() {
         walletAddress={miniPay.walletAddress}
         walletSummary={walletSummary}
         onNewChat={newChat}
+        gdBalance={gd.gdBalance}
+        gdEntitlement={gd.entitlement}
+        isGDVerified={gd.isVerified}
       />
 
       {/* ── Top bar ── */}
@@ -441,6 +457,43 @@ function HomeInner() {
           <p className="chat-empty__subtitle">
             Analyze your wallet, get spending advice, audit your activity, or generate a statement.
           </p>
+          {/* G$ claim banner */}
+          {gdBannerVisible && address && (
+            <div style={{
+              display: "flex", alignItems: "center", gap: "10px",
+              background: "rgba(0,174,255,0.08)", border: "1px solid rgba(0,174,255,0.22)",
+              borderRadius: "14px", padding: "10px 14px", width: "100%", maxWidth: "360px",
+              marginBottom: "4px",
+            }}>
+              <svg width="18" height="18" viewBox="0 0 32 32" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+                <circle cx="16" cy="16" r="16" fill="#00AEFF" />
+                <text x="16" y="21" textAnchor="middle" fill="white" fontSize="11" fontWeight="700" fontFamily="Arial,sans-serif">G$</text>
+              </svg>
+              <span style={{ fontSize: "12px", color: "var(--ink-70)", flex: 1, lineHeight: 1.4 }}>
+                <strong style={{ color: "#0090cc" }}>{gd.entitlement} G$</strong> unclaimed today
+              </span>
+              <button
+                type="button"
+                onClick={() => sendMessage("How can I get more value from my GoodDollar UBI?", "gd-ubi-optimize")}
+                style={{
+                  fontSize: "11px", fontWeight: 600, color: "#0090cc",
+                  background: "rgba(0,174,255,0.12)", border: "none",
+                  borderRadius: "8px", padding: "4px 10px", cursor: "pointer", flexShrink: 0,
+                }}
+              >
+                Optimize
+              </button>
+              <button
+                type="button"
+                onClick={() => { setGDBannerVisible(false); dismissGDClaimAlert(); }}
+                aria-label="Dismiss"
+                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-40)", padding: "0 0 0 2px", fontSize: "14px", lineHeight: 1 }}
+              >
+                ×
+              </button>
+            </div>
+          )}
+
           <div className="chat-empty__grid">
             {QUICK_ACTIONS.map((a) => (
               <button
