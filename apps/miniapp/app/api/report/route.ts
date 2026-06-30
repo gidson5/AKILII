@@ -7,7 +7,7 @@ import { z } from "zod";
 
 const reportRequestSchema = z.object({
   walletAddress: z.string().min(1),
-  reportType: z.enum(["spending-advice", "account-summary", "wallet-audit", "wallet-statement", "monthly-plan", "financial-health", "remittance-analysis"]),
+  reportType: z.enum(["spending-advice", "account-summary", "wallet-audit", "wallet-statement", "monthly-plan", "financial-health", "remittance-analysis", "gd-ubi-history", "gd-ubi-optimize"]),
   days: z.number().int().positive().max(365).optional().default(90)
 });
 
