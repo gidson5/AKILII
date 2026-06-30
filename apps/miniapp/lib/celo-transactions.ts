@@ -90,7 +90,11 @@ function shortenAddress(addr: string): string {
 }
 
 function formatAmount(value: string, decimals = 18): string {
-  const num = Number(BigInt(value)) / Math.pow(10, decimals);
+  const raw = BigInt(value);
+  const divisor = BigInt(10 ** decimals);
+  const whole = raw / divisor;
+  const remainder = raw % divisor;
+  const num = Number(whole) + Number(remainder) / Number(divisor);
   return num.toFixed(4);
 }
 
