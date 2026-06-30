@@ -18,7 +18,8 @@
       "address": "0xbc84e6000869E08837ecAd0a26D43f7731982E8F",
       "owner": "0xC6312ea8305Ea85c0ed26E608eD21e5C6A4Ad24b",
       "celoscan": "https://celoscan.io/address/0xbc84e6000869E08837ecAd0a26D43f7731982E8F",
-      "deployedAt": "2026-06-30"
+      "deployedAt": "2026-06-30",
+      "agent": "0x29BF34056232f09Ff7684BB303A1D35e761ed6bc"
     },
     "AkiliCredits": {
       "address": "0xE298A7EBd294Ba20474d0f259B2a00F776DCE4E2",
