@@ -2,11 +2,13 @@
 
 import { encodeFunctionData, parseUnits } from "viem";
 
-// G$ token on Celo mainnet (2 decimals)
+// G$ token on Celo mainnet (18 decimals)
 const GD_TOKEN_ADDRESS = "0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A" as `0x${string}`;
+// GoodDollar UBIScheme on Celo mainnet
+const GD_UBI_SCHEME    = "0x43d72Ff17701B2DA814620735C39C620Ce0ea4A1" as `0x${string}`;
 
 export const FREE_LIMIT = 3;
-export const AI_PRICE_GD  = parseUnits("0.10", 2);   // 0.10 G$
+export const AI_PRICE_GD  = parseUnits("0.10", 18);  // 0.10 G$
 export const AI_PRICE_DISPLAY = "0.10 G$";
 
 const AUDITS_KEY = "akili_audits_used";
@@ -14,7 +16,7 @@ const CHAT_KEY   = "akili_chat_used";
 const TRAIL_KEY  = "akili_trail_used";
 
 export const TRAIL_FREE_LIMIT    = 1;
-export const TRAIL_PRICE_GD      = parseUnits("0.50", 2);  // 0.50 G$
+export const TRAIL_PRICE_GD      = parseUnits("0.50", 18); // 0.50 G$
 export const TRAIL_PRICE_DISPLAY = "0.50 G$";
 
 const TRANSFER_ABI = [
@@ -131,6 +133,35 @@ export async function payForTrail(): Promise<string> {
       data,
       value: "0x0",
     }],
+  }) as string;
+
+  return txHash;
+}
+
+// ── G$ UBI Claim ──────────────────────────────────────────────────────────────
+
+const CLAIM_ABI = [
+  {
+    name: "claim",
+    type: "function",
+    inputs: [],
+    outputs: [{ name: "", type: "bool" }],
+    stateMutability: "nonpayable",
+  },
+] as const;
+
+export async function claimGD(): Promise<string> {
+  const ethereum = (window as unknown as { ethereum?: EthProvider }).ethereum;
+  if (!ethereum?.request) throw new Error("No wallet found.");
+
+  const accounts = await ethereum.request({ method: "eth_accounts" }) as string[];
+  if (!accounts?.[0]) throw new Error("Wallet not connected.");
+
+  const data = encodeFunctionData({ abi: CLAIM_ABI, functionName: "claim" });
+
+  const txHash = await ethereum.request({
+    method: "eth_sendTransaction",
+    params: [{ from: accounts[0], to: GD_UBI_SCHEME, data, value: "0x0" }],
   }) as string;
 
   return txHash;

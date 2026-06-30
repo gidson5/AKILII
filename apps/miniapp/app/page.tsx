@@ -19,6 +19,7 @@ import {
   recordAuditUsed,
   recordChatUsed,
   payForAI,
+  claimGD,
 } from "../lib/payment";
 
 // ── Types & constants ────────────────────────────────────────────────────────
@@ -233,6 +234,7 @@ function HomeInner() {
 
   // G$ claim banner
   const [gdBannerVisible, setGDBannerVisible] = useState(false);
+  const [claiming, setClaiming] = useState(false);
   useEffect(() => {
     if (gd.hasUnclaimed && shouldShowGDClaimAlert()) setGDBannerVisible(true);
   }, [gd.hasUnclaimed]);
@@ -472,14 +474,28 @@ function HomeInner() {
               </span>
               <button
                 type="button"
-                onClick={() => sendMessage("How can I get more value from my GoodDollar UBI?", "gd-ubi-optimize")}
+                disabled={claiming}
+                onClick={async () => {
+                  setClaiming(true);
+                  try {
+                    await claimGD();
+                    toast.success("G$ claimed! Your balance will update shortly.");
+                    setGDBannerVisible(false);
+                    dismissGDClaimAlert();
+                    setTimeout(() => void gd.refresh(), 4000);
+                  } catch (e) {
+                    toast.error(e instanceof Error ? e.message : "Claim failed");
+                  } finally {
+                    setClaiming(false);
+                  }
+                }}
                 style={{
-                  fontSize: "11px", fontWeight: 600, color: "#0090cc",
-                  background: "rgba(0,174,255,0.12)", border: "none",
-                  borderRadius: "8px", padding: "4px 10px", cursor: "pointer", flexShrink: 0,
+                  fontSize: "11px", fontWeight: 700, color: "#fff",
+                  background: claiming ? "rgba(0,174,255,0.4)" : "#00AEFF", border: "none",
+                  borderRadius: "8px", padding: "4px 12px", cursor: claiming ? "not-allowed" : "pointer", flexShrink: 0,
                 }}
               >
-                Optimize
+                {claiming ? "Claiming…" : "Claim G$"}
               </button>
               <button
                 type="button"
