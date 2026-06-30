@@ -156,9 +156,16 @@ packages/
 
 | Contract | Address | Network |
 |---|---|---|
-| ERC-8004 Registry | [`0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`](https://celoscan.io/address/0x8004A169FB4a3325136EB29fA0ceB6D2e539a432) | Celo Mainnet |
-| GoodDollar Token (G$) | [`0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A`](https://celoscan.io/address/0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A) | Celo Mainnet |
-| GoodDollar UBI Scheme | [`0x43d72Ff17701B2DA814620735C39C620Ce0ea4A1`](https://celoscan.io/address/0x43d72Ff17701B2DA814620735C39C620Ce0ea4A1) | Celo Mainnet |
+| AkiliEscrow | [`0xcCa0A1CF96f41f467E0E5D52d89003C1F77503B6`](https://celoscan.io/address/0xcCa0A1CF96f41f467E0E5D52d89003C1F77503B6) | Celo Mainnet |
+| ERC-8004 Agent Registration | [`0xda007d57...`](https://celoscan.io/tx/0xda007d57e9c8f7ac65cc49e86175ea363ac42f2a8df30fb5c57cabe599c96d7a) | Celo Mainnet |
+
+**GoodDollar contracts integrated (not deployed by us):**
+
+| Contract | Address |
+|---|---|
+| G$ Token | [`0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A`](https://celoscan.io/address/0x62B8B11039FcfE5aB0C56E502b1C372A3d2a9c7A) |
+| UBI Scheme | [`0x43d72Ff17701B2DA814620735C39C620Ce0ea4A1`](https://celoscan.io/address/0x43d72Ff17701B2DA814620735C39C620Ce0ea4A1) |
+| Identity | [`0xC361A6E67822a0EDc17D899227dd9FC50BD62F42`](https://celoscan.io/address/0xC361A6E67822a0EDc17D899227dd9FC50BD62F42) |
 
 ---
 
