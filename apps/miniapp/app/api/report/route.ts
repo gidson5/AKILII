@@ -23,7 +23,10 @@ const akiliLogAbi = parseAbi([
 ]);
 
 async function logToChain(userId: string, action: string): Promise<void> {
-  const pk = process.env.DEPLOYER_PRIVATE_KEY;
+  // Prefer a dedicated agent key; fall back to deployer only in dev.
+  // AKILI_AGENT_KEY should be a separate low-value wallet that only has
+  // the isAgent role on AkiliLog — never the deployer/owner key.
+  const pk = process.env.AKILI_AGENT_KEY ?? process.env.DEPLOYER_PRIVATE_KEY;
   if (!pk) return; // silently skip if no key configured
 
   try {

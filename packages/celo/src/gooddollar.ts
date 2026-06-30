@@ -200,29 +200,33 @@ export async function fetchUBIClaimHistory(
   });
 }
 
-// Fetch block timestamps via Blockscout API (batched, unique blocks only)
+// Fetch block timestamps via JSON-RPC (batched in groups of 20 to avoid overwhelming the RPC)
 async function fetchBlockTimestamps(blockNumbers: number[]): Promise<Map<number, number>> {
   const map = new Map<number, number>();
-  // Blockscout supports eth_getBlockByNumber — batch via individual calls in parallel (max 10)
-  const slice = blockNumbers.slice(0, 10);
-  await Promise.all(slice.map(async (bn) => {
-    try {
-      const res = await fetch(CELO_RPC, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0", id: bn,
-          method: "eth_getBlockByNumber",
-          params: ["0x" + bn.toString(16), false]
-        }),
-        signal: AbortSignal.timeout(RPC_TIMEOUT_MS)
-      });
-      const json = (await res.json()) as { result?: { timestamp: string } };
-      if (json.result?.timestamp) {
-        map.set(bn, parseInt(json.result.timestamp, 16));
-      }
-    } catch { /* skip — date will be empty */ }
-  }));
+  const BATCH = 20;
+
+  for (let i = 0; i < blockNumbers.length; i += BATCH) {
+    const chunk = blockNumbers.slice(i, i + BATCH);
+    await Promise.all(chunk.map(async (bn) => {
+      try {
+        const res = await fetch(CELO_RPC, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0", id: bn,
+            method: "eth_getBlockByNumber",
+            params: ["0x" + bn.toString(16), false]
+          }),
+          signal: AbortSignal.timeout(RPC_TIMEOUT_MS)
+        });
+        const json = (await res.json()) as { result?: { timestamp: string } };
+        if (json.result?.timestamp) {
+          map.set(bn, parseInt(json.result.timestamp, 16));
+        }
+      } catch { /* skip — date will be empty string */ }
+    }));
+  }
+
   return map;
 }
 

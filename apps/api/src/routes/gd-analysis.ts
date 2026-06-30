@@ -113,14 +113,15 @@ export async function handleGDClaims(address: string, query: Record<string, stri
   const totalRaw = claims.reduce((sum, c) => sum + c.amountRaw, 0n);
   const totalFormatted = (Number(totalRaw) / 100).toFixed(2);
 
-  // Streak: count consecutive days from most-recent claim backward using real dates
+  // Streak: count consecutive days from most-recent claim backward using real dates.
+  // GoodDollar distributes UBI once per day keyed by UTC date, so UTC dates are correct.
   const claimDates = new Set(claims.map(c => c.date).filter(Boolean));
   let streak = 0;
-  const today = new Date();
+  // Use UTC midnight to avoid timezone drift
+  const todayUTC = new Date().toISOString().slice(0, 10);
+  const todayMs = new Date(todayUTC).getTime();
   for (let i = 0; i < 365; i++) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    const key = d.toISOString().slice(0, 10);
+    const key = new Date(todayMs - i * 86_400_000).toISOString().slice(0, 10);
     if (claimDates.has(key)) {
       streak++;
     } else if (i > 0) {
@@ -128,7 +129,7 @@ export async function handleGDClaims(address: string, query: Record<string, stri
     }
   }
 
-  // Missed days: days in the period with no claim
+  // Missed days: unique days in the period with no claim
   const missedDays = days - claimDates.size;
 
   return {
